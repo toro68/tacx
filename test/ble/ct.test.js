@@ -52,8 +52,8 @@ describe('Core Body Temperature', () => {
         const payload = [0b00010111, 228, 14, 7, 15, 0, 0, 0b00010011, 130];
         const dataview = new DataView(new Uint8Array(payload).buffer);
 
-        console.log(dataview.buffer);
-        console.log(dataviewToArray(dataview));
+        // console.log(dataview.buffer);
+        // console.log(dataviewToArray(dataview));
 
         const expected = {
             coreBodyTemperature: 38.12,
@@ -67,4 +67,3 @@ describe('Core Body Temperature', () => {
         expect(res).toEqual(expected);
     });
 });
-

@@ -44,7 +44,7 @@ describe('Developer Fields', () => {
     test('encode', () => {
         const view = new DataView(new ArrayBuffer(dev_definition_record.length));
 
-        console.log(dataviewToArray(definitionRecord.encode(dev_fitjs, view)));
+        // console.log(dataviewToArray(definitionRecord.encode(dev_fitjs, view)));
 
         expect(
             dataviewToArray(definitionRecord.encode(dev_fitjs, view))

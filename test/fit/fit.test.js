@@ -35,7 +35,7 @@ describe('AppData', () => {
         const resArray = dataviewToArray(res);
 
         // basic integrity: header.dataSize matches byteLength
-        const header = fit.fileHeaderCore.decode(res);
+        const header = fit.fileHeader.decode(res);
         expect(res.byteLength).toBe(header.length + header.dataSize + fit.CRC.size);
 
         // check CRC

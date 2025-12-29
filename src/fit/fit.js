@@ -14,25 +14,10 @@ import { fitRecord, FITjs } from './fitjs.js';
 import { localActivity } from './local-activity.js';
 import { localCourse } from './local-course.js';
 
-import { legacyFileHeader } from './legacy/file-header.js';
-import { legacyRecordHeader } from './legacy/record-header.js';
-import { legacyDefinition } from './legacy/definition.js';
-import { legacyData } from './legacy/data.js';
-import { legacyActivity } from './legacy/activity.js';
-import { legacySummary } from './legacy/summary.js';
-
 function FIT(args = {}) {
     return {
-        // Legacy API used by tests
-        fileHeader: legacyFileHeader(),
-        header: legacyRecordHeader(),
-        definition: legacyDefinition(),
-        data: legacyData(),
-        activity: legacyActivity(),
-        summary: legacySummary(),
-
         // Current/core modules
-        fileHeaderCore: fileHeader,
+        fileHeader,
         recordHeader,
         definitionRecord,
         dataRecord,
