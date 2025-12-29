@@ -670,14 +670,13 @@ function Spec(args = {}) {
 
 // print
 function Print() {
-    if(!exists(process)) {
-        var process = {env: {NODE_ENV: "development"}};
-    }
+    const env =
+        (typeof process !== 'undefined' && process?.env?.NODE_ENV) ?
+            process.env.NODE_ENV :
+            'development';
 
-    let printLog = (process?.env?.NODE_ENV ?? "development" == "development") ?? false;
-    let printWarn = true;
-
-    console.log(`:env ${process?.env?.NODE_ENV} :print ${printLog}`);
+    const printLog = env === 'development';
+    const printWarn = env !== 'test';
 
     function log(msg) {
         if(printLog) {
