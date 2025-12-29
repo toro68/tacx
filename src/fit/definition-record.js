@@ -65,8 +65,10 @@ function DefinitionRecord(args = {}) {
     // }
     // -> DataView
     function encode(definition, view, i = 0) {
+        const hasDevFields = Array.isArray(definition.dev_fields) && definition.dev_fields.length > 0;
         const header = recordHeader.encode({
-            messageType:      _type,
+            messageType: _type,
+            messageTypeSpecific: hasDevFields ? 'developer' : undefined,
             localMessageType: definition.local_number,
         });
         const numberOfFields = definition.fields.length;
@@ -90,10 +92,8 @@ function DefinitionRecord(args = {}) {
         // if developer fields are defined
         // write # developer fields
         // write developer fields definitions
-        if('dev_fields' in definition) {
-
+        if(hasDevFields) {
             const numberOfDeveloperFields = definition.dev_fields.length;
-
             view.setUint8(i, numberOfDeveloperFields, true);
             i += 1;
 
@@ -127,7 +127,6 @@ function DefinitionRecord(args = {}) {
         const messageNumber     = view.getUint16(start+3, littleEndian);
         const messageName       = numberToMessageName(messageNumber);
         const numberOfFields    = readNumberOfFields(view, start);
-        const numberOfDevFields = readNumberOfDevFields(view, start);
 
         // i  is the dataview index
         // f  is the current field index
@@ -140,18 +139,23 @@ function DefinitionRecord(args = {}) {
             i += fieldLength;
         }
 
-        i+=1; // add the 'number of dev fields' field
+        let dev_fields;
+        if(recordHeader.isDeveloper(header)) {
+            const numberOfDevFields = view.getUint8(i, true);
+            i += 1; // number of developer fields
 
-        let dev_fields = [];
-        for(let df=0; df < numberOfDevFields; df++) {
-            dev_fields.push(fieldDefinition.decode(messageName, view, i,));
-            i += fieldLength;
+            dev_fields = [];
+            for(let df=0; df < numberOfDevFields; df++) {
+                dev_fields.push(fieldDefinition.decode(messageName, view, i,));
+                i += fieldLength;
+            }
         }
 
-        const length             = getDefinitionRecordLength(view, start);
-        const data_record_length = getDataRecordLength(fields.concat(dev_fields));
+        const allFields = dev_fields ? fields.concat(dev_fields) : fields;
+        const length = i - start;
+        const data_record_length = getDataRecordLength(allFields);
 
-        return {
+        const res = {
             type: _type,
             architecture,
             name: messageName,
@@ -159,8 +163,13 @@ function DefinitionRecord(args = {}) {
             length,
             data_record_length,
             fields,
-            dev_fields,
         };
+
+        if(dev_fields) {
+            res.dev_fields = dev_fields;
+        }
+
+        return res;
     }
 
     // ['message_name', ['field_name'], Int] |
@@ -201,7 +210,6 @@ function DefinitionRecord(args = {}) {
             length,
             data_record_length: 1,
             fields: [],
-            dev_fields: [],
         });
     }
 
@@ -220,4 +228,3 @@ export {
     DefinitionRecord,
     definitionRecord,
 };
-

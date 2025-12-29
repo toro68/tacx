@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#35363a" />
+
+        <title>Tacx Starter</title>
+        <link href="css/flux.css" rel="stylesheet" />
+    </head>
+
+    <body id="theme" class="dark-theme">
+        <div class="wrapper" style="padding: 16px; max-width: 720px; margin: 0 auto;">
+            <h1 style="margin: 8px 0;">Tacx Starter</h1>
+            <p style="margin: 8px 0; opacity: 0.8;">
+                Connect to your trainer via Web Bluetooth (Chrome/Edge/Brave).
+            </p>
+
+            <div style="display: grid; gap: 12px;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button id="btn-connect" class="button">Connect / Disconnect</button>
+                    <span>Device: <strong id="device-name">--</strong></span>
+                    <span>Status: <strong id="status">disconnected</strong></span>
+                </div>
+
+                <div style="display: grid; gap: 8px;">
+                    <label>
+                        Mode
+                        <select id="mode" class="input" style="margin-left: 8px;">
+                            <option value="erg">ERG (target watts)</option>
+                            <option value="resistance">Resistance (0..?)</option>
+                            <option value="sim">SIM (grade %)</option>
+                        </select>
+                    </label>
+
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <label>
+                            Target
+                            <input id="target" class="input" type="number" inputmode="numeric" min="0" step="1" value="150" style="width: 120px; margin-left: 8px;" />
+                        </label>
+                        <button id="btn-set" class="button">Set Target</button>
+                        <button id="btn-reset" class="button">Trainer Reset</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                        <div class="data-tile" style="padding: 12px;">
+                            <div style="opacity: 0.8;">Power</div>
+                            <div style="font-size: 24px;"><span id="power">--</span> W</div>
+                        </div>
+                        <div class="data-tile" style="padding: 12px;">
+                            <div style="opacity: 0.8;">Cadence</div>
+                            <div style="font-size: 24px;"><span id="cadence">--</span> rpm</div>
+                        </div>
+                        <div class="data-tile" style="padding: 12px;">
+                            <div style="opacity: 0.8;">Speed</div>
+                            <div style="font-size: 24px;"><span id="speed">--</span> km/h</div>
+                        </div>
+                        <div class="data-tile" style="padding: 12px;">
+                            <div style="opacity: 0.8;">Heart Rate</div>
+                            <div style="font-size: 24px;"><span id="hr">--</span> bpm</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p style="margin-top: 16px; opacity: 0.8;">
+                Notes: The repo auto-selects a single trainer control protocol to avoid clashes on Tacx.
+                See connect logic in src/ble/connectable.js.
+            </p>
+        </div>
+
+        <script type="module" src="./tacx-starter.js"></script>
+    </body>
+</html>

@@ -85,6 +85,10 @@ Tacx Heart Rate monitor, Tacx Flux S trainer, and X240 laptop with Ubuntu 20.04.
 - [How-To: Using the connection settings](https://github.com/dvmarinoff/Auuki/discussions/91)
 - [How-To: Using Auuki and another app concurrently](https://github.com/dvmarinoff/Auuki/discussions/101)
 
+## Local demo pages
+- `npm run start:tacx` serves `src/tacx-starter.html` (basic connect + ERG/Resistance/SIM).
+- `npm run start:neo` serves `src/neo-simple.html` (simple intervals + simple “route hills” SIM).
+
 ## Backers
 <div>
     <a href="https://github.com/KlausMu" target="_blank">

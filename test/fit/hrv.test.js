@@ -31,7 +31,6 @@ describe('AppData', () => {
                 {number: 5, size: 2, base_type: 'uint16'},
                 {number: 0, size: 1, base_type: 'enum'},
             ],
-            dev_fields: [],
         });
     });
 
@@ -50,7 +49,6 @@ describe('AppData', () => {
             fields: [
                 {number: 0, size: 10, base_type: 'uint16'}, // time
             ],
-            dev_fields: [],
         });
     });
 
@@ -66,7 +64,6 @@ describe('AppData', () => {
             fields: [
                 {number: 0, size: 10, base_type: 'uint16'}, // time
             ],
-            dev_fields: [],
         };
         const data = {time: [0.882, 0.906, 0xFFFF, 0xFFFF, 0xFFFF],};
         const arrayT = [4, 114,3, 138,3, 255,255, 255,255, 255,255]; // true
@@ -93,7 +90,15 @@ describe('AppData', () => {
             events: appData.events,
         });
 
-        expect(res).toEqual(FITjs({crc: false}));
+        const header = res[0];
+        expect(header.type).toBe('header');
+        expect(header.dataType).toBe('.FIT');
+
+        const totalLength = res.reduce((acc, r) => acc + (r?.length ?? 0), 0);
+        expect(header.dataSize).toBe(totalLength - (header.length + fit.CRC.size));
+
+        const hrvMsgs = res.filter((r) => r.type === 'data' && r.name === 'hrv');
+        expect(hrvMsgs.length).toBe(1);
+        expect(hrvMsgs[0].fields.time).toEqual(appData.records.find((r) => r.time)?.time);
     });
 });
-

@@ -32,7 +32,7 @@ function isDataView(x) {
 }
 
 function isObject(x) {
-    return equals(typeof x, 'object') && !(isArray(x));
+    return exists(x) && equals(typeof x, 'object') && !(isArray(x));
 }
 
 function isCollection(x) {
@@ -76,8 +76,12 @@ function validate(predicates = [], value, fallback = undefined) {
 
 // Collections
 function empty(x) {
+    if(isUndefined(x)) return true;
+    if(isNull(x)) throw new Error(`empty called with null`);
     if(isObject(x)) return (Object.keys(x).length === 0);
-    return x.length === 0;
+    if(isArray(x) || isString(x)) return x.length === 0;
+    if(ArrayBuffer.isView(x)) return x.byteLength === 0;
+    throw new Error(`empty called with unsupported type`);
 };
 
 const nth = curry2(function(offset, xs) {
@@ -89,19 +93,31 @@ const nth = curry2(function(offset, xs) {
 });
 
 function first(xs) {
-    return xs.at(0);
+    if(isUndefined(xs)) return undefined;
+    if(isNull(xs)) throw new Error(`first called with null`);
+    if(isArray(xs) || isString(xs)) return xs.at(0);
+    throw new Error(`first called with unsupported type`);
 }
 
 function second(xs) {
-    return xs.at(1);
+    if(isUndefined(xs)) return undefined;
+    if(isNull(xs)) throw new Error(`second called with null`);
+    if(isArray(xs) || isString(xs)) return xs.at(1);
+    throw new Error(`second called with unsupported type`);
 }
 
 function third(xs) {
-    return xs.at(2);
+    if(isUndefined(xs)) return undefined;
+    if(isNull(xs)) throw new Error(`third called with null`);
+    if(isArray(xs) || isString(xs)) return xs.at(2);
+    throw new Error(`third called with unsupported type`);
 }
 
 function last(xs) {
-    return xs.at(-1);
+    if(isUndefined(xs)) return undefined;
+    if(isNull(xs)) throw new Error(`last called with null`);
+    if(isArray(xs) || isString(xs)) return xs.at(-1);
+    throw new Error(`last called with unsupported type`);
 }
 
 const prop = curry2(function(p, x) {
@@ -180,7 +196,7 @@ function max(xs, prop = false) {
     if(prop !== false) {
         return xs.reduce( (acc,v,i) => v[prop] > acc ? v[prop] : acc, 0);
     } else {
-        return Math.max(xs);
+        return Math.max(...xs);
     }
 };
 
@@ -782,4 +798,3 @@ export {
     setUint24LE,
     getUint24LE,
 };
-

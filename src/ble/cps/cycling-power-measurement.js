@@ -146,8 +146,37 @@ function CyclingPowerMeasurement(args = {}) {
 
 const cyclingPowerMeasurement = CyclingPowerMeasurement();
 
+function indexOf(fieldName, flags) {
+    let i = 0;
+    for(const name of order) {
+        const field = fields[name];
+        if(name === 'flags' || name === 'power') {
+            if(name === fieldName) return i;
+            i += field.size;
+            continue;
+        }
+        if(field.present(flags)) {
+            if(name === fieldName) return i;
+            i += field.size;
+        }
+    }
+    return undefined;
+}
+
+const _ = Object.freeze({
+    flagsIndex: () => 0,
+    wheelRevolutionsIndex: (flags) => indexOf('cumulativeWheelRevolutions', flags),
+    wheelEventIndex: (flags) => indexOf('lastWheelEventTime', flags),
+    crankRevolutionsIndex: (flags) => indexOf('cumulativeCrankRevolutions', flags),
+    crankEventIndex: (flags) => indexOf('lastCrankEventTime', flags),
+});
+
+const measurement = cyclingPowerMeasurement;
+
 export {
     CyclingPowerMeasurement,
     cyclingPowerMeasurement,
+    // Backwards-compatible exports for tests/older imports.
+    measurement,
+    _,
 };
-

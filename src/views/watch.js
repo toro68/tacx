@@ -19,6 +19,18 @@ class Watch extends HTMLElement {
             // workout: document.querySelector('#start-workout'),
         };
 
+        if(
+            !this.dom.start ||
+            !this.dom.pause ||
+            !this.dom.back ||
+            !this.dom.lap ||
+            !this.dom.stop ||
+            !this.dom.save
+        ) {
+            // Allow constructing the element in tests/partial DOM without crashing.
+            return;
+        }
+
         this.dom.start.addEventListener('pointerup', this.onStart, this.signal);
         this.dom.pause.addEventListener('pointerup', this.onPause, this.signal);
         this.dom.back.addEventListener('pointerup', this.onBack, this.signal);

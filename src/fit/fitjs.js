@@ -72,7 +72,8 @@ function FitRecord() {
             const headerLength = fileHeaderJS.length;
             unfinished = byteLength !== (dataSize + headerLength + CRC.size);
 
-            console.log(`:fit :decode :headerLength ${headerLength} :dataSize ${dataSize} :byteLength ${byteLength} :unfinished ${unfinished}`);
+            // noisy in tests; enable locally if needed
+            // console.log(`:fit :decode :headerLength ${headerLength} :dataSize ${dataSize} :byteLength ${byteLength} :unfinished ${unfinished}`);
 
             return fileHeaderJS;
         }
@@ -172,4 +173,3 @@ export {
     FitRecord,
     fitRecord,
 };
-

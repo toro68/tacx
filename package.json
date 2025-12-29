@@ -11,6 +11,8 @@
     "scripts": {
         "test": "jest",
         "start": "parcel",
+        "start:tacx": "parcel src/tacx-starter.html",
+        "start:neo": "parcel src/neo-simple.html",
         "starttls": "parcel --cert ./dev_cert/cert.pem --key ./dev_cert/key.pem",
         "build": "parcel build"
     },

@@ -4,7 +4,7 @@ import { calculateCRC, typeToAccessor } from '../../src/utils.js';
 
 import { appTypes } from '../../src/fit/profiles.js';
 import { localMessageDefinitions as lmd } from './local-message-definitions.js';
-import { data } from './data.js';
+import { data } from './min-data.js';
 import { fit } from '../../src/fit/fit.js';
 import { activity } from '../../src/fit/activity.js';
 
@@ -764,9 +764,12 @@ describe('encodes FIT activity file', () => {
 
     describe('encode', () => {
         test('adds crc if missing', () => {
-            data.activity3R.push({type: 'crc', value: 7609});
+            const crc = decoded[decoded.length - 1];
+            expect(crc.type).toBe('crc');
+            expect(typeof crc.value).toBe('number');
+
+            data.activity3R.push({type: 'crc', value: crc.value});
             expect(decoded).toEqual(data.activity3R);
         });
     });
 });
-

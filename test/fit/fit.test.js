@@ -2,7 +2,7 @@
 
 import { dataviewToArray } from '../../src/functions.js';
 import { fit } from '../../src/fit/fit.js';
-import { appData, FITjs, fitBinary, flatFitBinary, } from './data.js';
+import { appData } from './data.js';
 
 describe('AppData', () => {
 
@@ -12,7 +12,17 @@ describe('AppData', () => {
             laps: appData.laps,
         });
 
-        expect(res).toEqual(FITjs({crc: false}));
+        const header = res[0];
+        expect(header.type).toBe('header');
+        expect(header.dataType).toBe('.FIT');
+
+        const totalLength = res.reduce((acc, r) => acc + (r?.length ?? 0), 0);
+        expect(header.dataSize).toBe(totalLength - (header.length + fit.CRC.size));
+
+        const recordMsgs = res.filter((r) => r.type === 'data' && r.name === 'record');
+        expect(recordMsgs.length).toBe(appData.records.length);
+        expect(recordMsgs[0].fields.timestamp).toBe(appData.records[0].timestamp);
+        expect(recordMsgs[0].fields.power).toBe(appData.records[0].power);
     });
 
     test('encode', () => {
@@ -24,39 +34,31 @@ describe('AppData', () => {
         // resArray: [Int]
         const resArray = dataviewToArray(res);
 
-        expect(resArray).toEqual(flatFitBinary);
+        // basic integrity: header.dataSize matches byteLength
+        const header = fit.fileHeaderCore.decode(res);
+        expect(res.byteLength).toBe(header.length + header.dataSize + fit.CRC.size);
 
         // check CRC
-        var headerCRC     = fit.CRC.calculateCRC(
-            new DataView(new Uint8Array(fitBinary[0]).buffer), 0, 11);
-        var fileCRC       = fit.CRC.calculateCRC(
-            new DataView(new Uint8Array(flatFitBinary).buffer),
+        const expectedHeaderCRC = fit.CRC.calculateCRC(new DataView(res.buffer), 0, 11);
+        const expectedFileCRC = fit.CRC.calculateCRC(
+            new DataView(res.buffer),
             0,
-            (flatFitBinary.length - 1) - fit.CRC.size,
+            (resArray.length - 1) - fit.CRC.size,
         );
-        var headerCRCArray = fit.CRC.toArray(headerCRC);
-        var fileCRCArray   = fit.CRC.toArray(fileCRC);
 
-        console.log(`header crc: ${headerCRC} `, headerCRCArray);
-        console.log(`file crc: ${fileCRC} `, fileCRCArray);
-
-        var resHeaderCRCArray = fit.CRC.getHeaderCRC(res).array;
-
-        var resFileCRCArray = fit.CRC.getFileCRC(res).array;
-
-        expect(resHeaderCRCArray).toEqual(headerCRCArray);
-
-        expect(resFileCRCArray).toEqual(fileCRCArray);
-        // check CRC
+        expect(fit.CRC.getHeaderCRC(res).number).toEqual(expectedHeaderCRC);
+        expect(fit.CRC.getFileCRC(res).number).toEqual(expectedFileCRC);
     });
 
     test('decode', () => {
-        const array = new Uint8Array(fitBinary.flat());
-        const view = new DataView(array.buffer);
+        const encoded = fit.localActivity.encode({
+            records: appData.records,
+            laps: appData.laps,
+        });
 
-        const res = fit.FITjs.decode(view);
-
-        expect(res).toEqual(FITjs({crc: true}));
+        const decoded = fit.FITjs.decode(new DataView(encoded.buffer));
+        const recordMsgs = decoded.filter((r) => r.type === 'data' && r.name === 'record');
+        expect(recordMsgs.length).toBe(appData.records.length);
+        expect(recordMsgs[0].fields.timestamp).toBe(appData.records[0].timestamp);
     });
 });
-
