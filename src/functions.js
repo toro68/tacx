@@ -24,6 +24,7 @@ import {
     setUint24LE,
     getUint24LE,
 } from './functions/bits.js';
+import { delay, wait } from './functions/async.js';
 
 // Values
 function equals(a, b) {
@@ -455,15 +456,6 @@ function debounce(func, wait, options = {}) {
     return debounced;
 }
 // end copied from lodash.js
-
-// Async
-async function delay(ms) {
-    return await new Promise(res => setTimeout(res, ms));
-}
-
-async function wait(ms) {
-    return await new Promise(res => setTimeout(res, ms));
-}
 
 // XF (Events)
 function XF(args = {}) {
