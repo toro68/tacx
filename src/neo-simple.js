@@ -60,6 +60,10 @@ const ctx = profile.getContext('2d');
 
 const virtualSpeedEl = $('virtual-speed');
 const weightEl = $('weight');
+const difficultyEl = $('difficulty');
+const ghostEnabledEl = $('ghost-enabled');
+const ghostAutoSaveEl = $('ghost-auto-save');
+const btnGhostClear = $('btn-ghost-clear');
 const cdaEl = $('cda');
 const crrEl = $('crr');
 const windEl = $('wind');
@@ -85,6 +89,7 @@ const state = {
         lastSentAt: 0,
         lastSentGrade: null,
         source: 'route', // 'route' | 'manual' | 'workout'
+        difficulty: 1, // grade multiplier 0..2 (Resistance %)
     },
     workout: {
         running: false,
@@ -92,6 +97,7 @@ const state = {
         pausedAt: 0,
         pausedTotalMs: 0,
         startAt: 0,
+        distanceStartM: 0,
         stepIndex: 0,
         stepStartedAt: 0,
         totalDurationSec: 0,
@@ -116,6 +122,14 @@ const state = {
         leaderboard: true,
         wheelAngle: 0,
         crankAngle: 0,
+    },
+    ghost: {
+        enabled: false,
+        run: null,
+        relM: null,
+        recording: false,
+        samples: [],
+        lastSampleMs: 0,
     },
 };
 
@@ -149,6 +163,72 @@ function loadSettings() {
 
 function saveSettings(next) {
     localStorage.setItem('neoSimple:settings', JSON.stringify(next));
+}
+
+function loadGhostRun() {
+    try {
+        const raw = localStorage.getItem('neoSimple:ghost');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const samples = parsed?.samples;
+        if (!Array.isArray(samples) || samples.length < 2) return null;
+        const normalized = [];
+        for (const row of samples) {
+            if (!Array.isArray(row) || row.length !== 2) continue;
+            const t = Number(row[0]);
+            const d = Number(row[1]);
+            if (!Number.isFinite(t) || !Number.isFinite(d)) continue;
+            normalized.push([t, d]);
+        }
+        normalized.sort((a, b) => a[0] - b[0]);
+        if (normalized.length < 2) return null;
+        return {
+            version: 1,
+            createdAt: typeof parsed.createdAt === 'number' ? parsed.createdAt : Date.now(),
+            routeName: typeof parsed.routeName === 'string' ? parsed.routeName : '',
+            samples: normalized,
+            totalTimeMs: typeof parsed.totalTimeMs === 'number' ? parsed.totalTimeMs : normalized[normalized.length - 1][0],
+            totalDistanceM: typeof parsed.totalDistanceM === 'number' ? parsed.totalDistanceM : normalized[normalized.length - 1][1],
+        };
+    } catch {
+        return null;
+    }
+}
+
+function saveGhostRun(run) {
+    try {
+        localStorage.setItem('neoSimple:ghost', JSON.stringify(run));
+    } catch {
+        // ignore
+    }
+}
+
+function clearGhostRun() {
+    try {
+        localStorage.removeItem('neoSimple:ghost');
+    } catch {
+        // ignore
+    }
+    state.ghost.run = null;
+    state.ghost.relM = null;
+}
+
+function ghostDistanceAt(run, tMs) {
+    const samples = run?.samples;
+    if (!samples?.length) return 0;
+    if (tMs <= samples[0][0]) return samples[0][1];
+    const last = samples[samples.length - 1];
+    if (tMs >= last[0]) return last[1];
+    for (let i = 1; i < samples.length; i += 1) {
+        const a = samples[i - 1];
+        const b = samples[i];
+        if (tMs <= b[0]) {
+            const span = b[0] - a[0];
+            const t = span > 0 ? (tMs - a[0]) / span : 0;
+            return a[1] + (b[1] - a[1]) * t;
+        }
+    }
+    return last[1];
 }
 
 function toInt(value, fallback = 0) {
@@ -256,6 +336,8 @@ function setSlopeTarget(gradePercent) {
     state.currentGrade = grade;
     gradeEl.textContent = grade.toFixed(1);
 
+    state.sim.difficulty = clamp(toInt(difficultyEl?.value, 100) / 100, 0, 2);
+
     const now = performance.now();
     const lastSent = state.sim.lastSentAt;
     const lastGrade = state.sim.lastSentGrade;
@@ -263,7 +345,8 @@ function setSlopeTarget(gradePercent) {
     if (now - lastSent < 650 && !gradeChanged) return;
     state.sim.lastSentAt = now;
     state.sim.lastSentGrade = grade;
-    xf.dispatch('ui:slope-target-set', grade);
+    const scaled = clamp(grade * clamp(state.sim.difficulty, 0, 2), -10, 20);
+    xf.dispatch('ui:slope-target-set', scaled);
 }
 
 function resetTrainer() {
@@ -880,6 +963,7 @@ function startWorkout() {
     state.workout.stepIndex = 0;
     state.workout.startAt = performance.now();
     state.workout.stepStartedAt = state.workout.startAt;
+    state.workout.distanceStartM = state.totalDistanceM;
     state.workout.lastCueSec = null;
 
     const first = state.workout.steps[0];
@@ -890,9 +974,29 @@ function startWorkout() {
     btnWorkoutStop.disabled = false;
     setWorkoutFocusUi(true);
     beep.play({ freq: 980, durationMs: 90, gain: 0.05 });
+
+    state.ghost.recording = true;
+    state.ghost.samples = [[0, 0]];
+    state.ghost.lastSampleMs = 0;
 }
 
 function stopWorkout() {
+    if (state.ghost.recording) {
+        state.ghost.recording = false;
+        const run = {
+            version: 1,
+            createdAt: Date.now(),
+            routeName: state.route.name,
+            samples: state.ghost.samples,
+            totalTimeMs: state.ghost.samples[state.ghost.samples.length - 1]?.[0] ?? 0,
+            totalDistanceM: state.ghost.samples[state.ghost.samples.length - 1]?.[1] ?? 0,
+        };
+        if (ghostAutoSaveEl?.checked) {
+            saveGhostRun(run);
+            state.ghost.run = run;
+            state.ghost.enabled = !!ghostEnabledEl?.checked;
+        }
+    }
     state.workout.running = false;
     state.workout.paused = false;
     state.workout.pausedAt = 0;
@@ -900,6 +1004,7 @@ function stopWorkout() {
     state.workout.steps = [];
     state.workout.stepIndex = 0;
     state.workout.startAt = 0;
+    state.workout.distanceStartM = 0;
     state.workout.stepStartedAt = 0;
     state.workout.totalDurationSec = 0;
     state.workout.currentTargetText = '--';
@@ -1094,15 +1199,22 @@ simAuto.addEventListener('change', () => {
     setSlopeTarget(toFloat(simGrade.value, 0));
 });
 
+difficultyEl?.addEventListener('change', () => {
+    if (currentRadioMode() !== 'sim') return;
+    // resend with the new scaling factor
+    setSlopeTarget(state.currentGrade);
+});
+
 function getRideSettings() {
     const weight = clamp(toFloat(weightEl.value, 80), 40, 140);
+    const difficultyPct = clamp(toInt(difficultyEl?.value, 100), 0, 200);
     const cda = clamp(toFloat(cdaEl.value, 0.32), 0.15, 0.6);
     const crr = clamp(toFloat(crrEl.value, 0.005), 0.001, 0.02);
     const wind = clamp(toFloat(windEl.value, 0), -10, 10);
     const virtualEnabled = !!virtualSpeedEl.checked;
     const enhanced = !!gfxEnhancedEl.checked;
     const leaderboard = !!gfxLeaderboardEl.checked;
-    return { weight, cda, crr, wind, virtualEnabled, enhanced, leaderboard };
+    return { weight, difficultyPct, cda, crr, wind, virtualEnabled, enhanced, leaderboard };
 }
 
 function requiredPowerForSpeed({ v, grade, weightKg, crr, cda, wind }) {
@@ -1208,12 +1320,13 @@ function updateRideAnimation(dtSec) {
     state.rideVisual.wheelAngle = (state.rideVisual.wheelAngle + wheelRadPerSec * dtSec) % (Math.PI * 2);
 }
 
-function drawRiderSprite({ x, y, scale = 1, color = 'rgba(76,154,255,0.95)', accent = 'rgba(255,255,255,0.85)', wheelAngle = 0, crankAngle = 0, alpha = 1 }) {
-    const ctx = rideCtx;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-    ctx.globalAlpha = alpha;
+    function drawRiderSprite({ x, y, scale = 1, angle = 0, color = 'rgba(76,154,255,0.95)', accent = 'rgba(255,255,255,0.85)', wheelAngle = 0, crankAngle = 0, alpha = 1 }) {
+        const ctx = rideCtx;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = alpha;
 
     const wheelR = 10;
     const wheelBase = 38;
@@ -1364,6 +1477,17 @@ function drawLeaderboard({ x, y, w, h }) {
     rideCtx.fillStyle = 'rgba(255,255,255,0.70)';
     rideCtx.fillText('0 m', w - 44, yy);
     yy += 18;
+
+    if (state.ghost.enabled && typeof state.ghost.relM === 'number') {
+        rideCtx.fillStyle = 'rgba(191,90,242,0.95)';
+        rideCtx.fillRect(10, yy - 9, 8, 8);
+        rideCtx.fillStyle = 'rgba(255,255,255,0.86)';
+        const dir = state.ghost.relM >= 0 ? 'ahead' : 'behind';
+        rideCtx.fillText(`You (prev) ${dir}`, 24, yy);
+        rideCtx.fillStyle = 'rgba(255,255,255,0.70)';
+        rideCtx.fillText(`${Math.abs(Math.round(state.ghost.relM))} m`, w - 54, yy);
+        yy += 18;
+    }
 
     for (const n of closest) {
         rideCtx.fillStyle = n.color;
@@ -1561,6 +1685,32 @@ function drawRide(dtSec = 0) {
     // rider (fixed screen position)
     const riderX = centerX;
     const riderY = roadY - 18;
+    const vanishing = { x: farX, y: horizonY };
+
+    // ghost rider (your previous run)
+    if (state.rideVisual.enhanced && state.ghost.enabled && typeof state.ghost.relM === 'number') {
+        const rel = clamp(state.ghost.relM, -140, 140);
+        const ahead = rel >= 0;
+        const z = ahead ? clamp(rel, 0, 140) : clamp(Math.abs(rel), 0, 140);
+        const t = clamp(z / 160, 0, 1);
+        const y = roadY - (roadY - horizonY) * t;
+        const roadW = roadWNear - (roadWNear - roadWFar) * t;
+        const cx = centerX + (farX - centerX) * t;
+        const x = cx + (roadW * 0.04);
+        const s = 0.55 + (1 - t) * 0.55;
+        const angle = Math.atan2(vanishing.y - (y - 6), vanishing.x - x);
+        drawRiderSprite({
+            x,
+            y: y - 6,
+            scale: s,
+            angle,
+            color: 'rgba(191,90,242,0.95)',
+            accent: 'rgba(255,255,255,0.70)',
+            wheelAngle: state.rideVisual.wheelAngle + t,
+            crankAngle: state.rideVisual.crankAngle + t,
+            alpha: 0.75,
+        });
+    }
 
     // NPC riders
     if (state.rideVisual.enhanced) {
@@ -1575,10 +1725,12 @@ function drawRide(dtSec = 0) {
             const laneOffset = (npc.id.charCodeAt(0) % 3) - 1;
             const x = cx + laneOffset * (roadW * 0.12) + (Math.sin((state.totalDistanceM + z) / 50) * 2);
             const s = 0.55 + (1 - t) * 0.55;
+            const angle = Math.atan2(vanishing.y - (y - 6), vanishing.x - x);
             drawRiderSprite({
                 x,
                 y: y - 6,
                 scale: s,
+                angle,
                 color: npc.color,
                 accent: 'rgba(255,255,255,0.70)',
                 wheelAngle: state.rideVisual.wheelAngle + t,
@@ -1590,10 +1742,12 @@ function drawRide(dtSec = 0) {
 
     // main rider
     if (state.rideVisual.enhanced) {
+        const angle = Math.atan2(vanishing.y - (riderY + 10), vanishing.x - riderX);
         drawRiderSprite({
             x: riderX,
             y: riderY + 10,
             scale: 1.15,
+            angle,
             color: 'rgba(76,154,255,0.95)',
             accent: 'rgba(255,255,255,0.86)',
             wheelAngle: state.rideVisual.wheelAngle,
@@ -1736,6 +1890,7 @@ updateFullscreenButton();
 const initial = loadSettings();
 if (typeof initial.virtualSpeed === 'boolean') virtualSpeedEl.checked = initial.virtualSpeed;
 if (typeof initial.weight === 'number') weightEl.value = String(initial.weight);
+if (typeof initial.difficultyPct === 'number') difficultyEl.value = String(initial.difficultyPct);
 if (typeof initial.cda === 'number') cdaEl.value = String(initial.cda);
 if (typeof initial.crr === 'number') crrEl.value = String(initial.crr);
 if (typeof initial.wind === 'number') windEl.value = String(initial.wind);
@@ -1744,7 +1899,23 @@ if (typeof initial.builderName === 'string') builderName.value = initial.builder
 if (Array.isArray(initial.builderSteps)) state.builder.steps = initial.builderSteps;
 if (typeof initial.gfxEnhanced === 'boolean') gfxEnhancedEl.checked = initial.gfxEnhanced;
 if (typeof initial.gfxLeaderboard === 'boolean') gfxLeaderboardEl.checked = initial.gfxLeaderboard;
+if (typeof initial.ghostEnabled === 'boolean') ghostEnabledEl.checked = initial.ghostEnabled;
+if (typeof initial.ghostAutoSave === 'boolean') ghostAutoSaveEl.checked = initial.ghostAutoSave;
 renderBuilder();
+
+state.ghost.run = loadGhostRun();
+state.ghost.enabled = !!ghostEnabledEl?.checked && !!state.ghost.run;
+btnGhostClear?.addEventListener('click', () => {
+    clearGhostRun();
+    state.ghost.enabled = false;
+    if (ghostEnabledEl) ghostEnabledEl.checked = false;
+    persistSettings();
+});
+ghostEnabledEl?.addEventListener('change', () => {
+    state.ghost.run = loadGhostRun();
+    state.ghost.enabled = !!ghostEnabledEl.checked && !!state.ghost.run;
+    persistSettings();
+});
 
 function updateWorkoutPreview() {
     const ftpValue = clamp(toInt(ftp.value, 250), 50, 2000);
@@ -1767,6 +1938,7 @@ function persistSettings() {
     saveSettings({
         virtualSpeed: s.virtualEnabled,
         weight: s.weight,
+        difficultyPct: s.difficultyPct,
         cda: s.cda,
         crr: s.crr,
         wind: s.wind,
@@ -1775,9 +1947,11 @@ function persistSettings() {
         builderSteps: state.builder.steps,
         gfxEnhanced: !!gfxEnhancedEl.checked,
         gfxLeaderboard: !!gfxLeaderboardEl.checked,
+        ghostEnabled: !!ghostEnabledEl?.checked,
+        ghostAutoSave: !!ghostAutoSaveEl?.checked,
     });
 }
-for (const el of [virtualSpeedEl, weightEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl]) {
+for (const el of [virtualSpeedEl, weightEl, difficultyEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl, ghostEnabledEl, ghostAutoSaveEl]) {
     el.addEventListener('change', persistSettings);
 }
 
@@ -1898,9 +2072,11 @@ function loop(now) {
 
     const rideSettings = getRideSettings();
     state.virtual.enabled = rideSettings.virtualEnabled;
+    state.sim.difficulty = clamp(rideSettings.difficultyPct / 100, 0, 2);
 
+    const effectiveGrade = state.currentGrade * state.sim.difficulty;
     const vMps = state.virtual.enabled
-        ? solveSpeedMps({ powerW: state.powerW, grade: state.currentGrade, settings: rideSettings })
+        ? solveSpeedMps({ powerW: state.powerW, grade: effectiveGrade, settings: rideSettings })
         : state.speedMeasuredKmh / 3.6;
 
     // Smooth virtual speed a bit
@@ -1925,6 +2101,30 @@ function loop(now) {
     const distanceDt = state.workout.running && state.workout.paused ? 0 : dt;
     const nextDistance = state.totalDistanceM + speedMps * distanceDt;
     state.totalDistanceM = Number.isFinite(nextDistance) ? nextDistance : state.totalDistanceM;
+
+    // Ghost recording/playback uses workout time (excluding pauses) and distance since workout start.
+    if (state.workout.running) {
+        const workoutNowMs = getWorkoutNowMs(now);
+        const tMs = Math.max(0, workoutNowMs - state.workout.startAt);
+        const dM = Math.max(0, state.totalDistanceM - state.workout.distanceStartM);
+
+        if (state.ghost.recording && !state.workout.paused) {
+            if (tMs - state.ghost.lastSampleMs >= 1000) {
+                state.ghost.samples.push([Math.round(tMs), dM]);
+                state.ghost.lastSampleMs = tMs;
+            }
+        }
+
+        if (state.ghost.enabled && state.ghost.run) {
+            const ghostD = ghostDistanceAt(state.ghost.run, tMs);
+            state.ghost.relM = ghostD - dM;
+        } else {
+            state.ghost.relM = null;
+        }
+    } else {
+        state.ghost.relM = null;
+        state.ghost.recording = false;
+    }
 
     // Keep currentGrade in sync with mode/source
     if (state.mode === 'sim' && state.sim.source === 'route' && simAuto.checked) {
