@@ -137,8 +137,7 @@ class WorkoutGraph extends HTMLElement {
 
         this.addEventListener('mouseover', this.onHover.bind(this), this.signal);
         this.addEventListener('mouseout', this.onMouseOut.bind(this), this.signal);
-        // window.addEventListener('resize', this.debounced.onWindowResize.bind(this), this.signal);
-        window.addEventListener('resize', this.onWindowResize.bind(this), this.signal);
+        window.addEventListener('resize', this.debounced.onWindowResize, this.signal);
     }
     disconnectedCallback() {
         this.abortController.abort();
@@ -168,6 +167,11 @@ class WorkoutGraph extends HTMLElement {
     onWindowResize(e) {
         const viewPort = this.getViewPort();
         if(equals(viewPort.width, 0)) return;
+        if(exists(this.viewPort) &&
+           equals(viewPort.width, this.viewPort.width) &&
+           equals(viewPort.height, this.viewPort.height)) {
+            return;
+        }
         this.viewPort = viewPort;
         this.render();
     }
@@ -363,4 +367,3 @@ export {
     courseToGraph,
     renderInfo,
 };
-

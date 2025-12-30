@@ -35,6 +35,9 @@ class MoxyGraph extends HTMLElement {
         this.step = 1;
         this.width = 0;
         this.x = 0;
+        this._dirtyKeys = new Set();
+        this._renderRequested = false;
+        this._lastPoints = {};
 
         // configurations
         this.prop = {
@@ -90,12 +93,21 @@ class MoxyGraph extends HTMLElement {
         for(let key in this.Key) {
             // this.path[key] = [];
             this.$path[key] = this.querySelector(this.selectors.path[key]);
+            if(!this.$path[key]?.setAttribute) continue;
             this.$path[key].setAttribute('stroke', this.color[key]);
             xf.sub(`${this.prop[key]}`, this.handlers[key].bind(this), this.signal);
         }
 
         xf.sub(`${this.prop.elapsed}`, this.onElapsed.bind(this), this.signal);
-        window.addEventListener(`resize`, this.onResize.bind(this), this.signal);
+        this.onResizeDebounced = debounce(
+            () => {
+                this.width = this.calcWidth();
+                this.requestRender();
+            },
+            150,
+            { trailing: true, leading: false },
+        );
+        window.addEventListener(`resize`, this.onResizeDebounced, this.signal);
     }
     disconnectedCallback() {
         this.abortController.abort();
@@ -104,7 +116,6 @@ class MoxyGraph extends HTMLElement {
         return this.$cont.getBoundingClientRect()?.width ?? window.innerWidth;
     }
     onResize() {
-        // TODO: debounce
         this.width = this.calcWidth();
     }
     adjustYMinMaxFor(key, value) {
@@ -124,15 +135,13 @@ class MoxyGraph extends HTMLElement {
         // first calculate
         for(let key in this.path) {
             this.calcStep(key);
-        }
-
-        // render all
-        for(let key in this.path) {
-            this.renderStep(key);
+            this._dirtyKeys.add(key);
         }
 
         // move x to the right for the next elapsed interval
         this.x += this.step;
+
+        this.requestRender();
     }
     // this.smo2 =      {value: 0, x: 0, min:  0, max: 100};
     // this.thb =       {value: 0, x: 0, min:  8, max:  15};
@@ -196,9 +205,35 @@ class MoxyGraph extends HTMLElement {
             this.path[key].push(y);
         }
     }
+    requestRender() {
+        if(!this.isConnected) return;
+        if(!this.$svg) return;
+        if(this._renderRequested) return;
+        this._renderRequested = true;
+
+        const raf =
+            (typeof window !== 'undefined' && window.requestAnimationFrame) ?
+                window.requestAnimationFrame.bind(window) :
+                null;
+
+        const schedule = raf ?? ((cb) => setTimeout(cb, 0));
+        schedule(() => {
+            this._renderRequested = false;
+            this.flushRender();
+        });
+    }
+    flushRender() {
+        if(this._dirtyKeys.size === 0) return;
+        for(const key of this._dirtyKeys) {
+            this.renderStep(key);
+        }
+        this._dirtyKeys.clear();
+    }
     renderStep(key) {
         if(!this.$path?.[key]?.setAttribute) return;
         const points = this.path[key].join(',');
+        if(this._lastPoints[key] === points) return;
+        this._lastPoints[key] = points;
         this.$path[key].setAttribute('points', points);
     }
 }
