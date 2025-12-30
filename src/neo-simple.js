@@ -72,6 +72,7 @@ const crrEl = $('crr');
 const windEl = $('wind');
 const gfxEnhancedEl = $('gfx-enhanced');
 const gfxLeaderboardEl = $('gfx-leaderboard');
+const gfxCrowdEl = $('gfx-crowd');
 const ride = $('ride');
 const rideCtx = ride.getContext('2d');
 
@@ -118,6 +119,7 @@ const state = {
     },
     rideVisual: {
         seeded: false,
+        crowd: 'many', // off | few | many
         npcs: [],
         postsSeeded: false,
         posts: [],
@@ -1317,7 +1319,8 @@ function getRideSettings() {
     const virtualEnabled = !!virtualSpeedEl.checked;
     const enhanced = !!gfxEnhancedEl.checked;
     const leaderboard = !!gfxLeaderboardEl.checked;
-    return { weight, difficultyPct, cda, crr, wind, virtualEnabled, enhanced, leaderboard };
+    const crowd = (gfxCrowdEl && typeof gfxCrowdEl.value === 'string') ? gfxCrowdEl.value : 'many';
+    return { weight, difficultyPct, cda, crr, wind, virtualEnabled, enhanced, leaderboard, crowd };
 }
 
 function requiredPowerForSpeed({ v, grade, weightKg, crr, cda, wind }) {
@@ -1360,11 +1363,19 @@ function colorForGrade(grade) {
     return 'rgba(255,255,255,0.78)';
 }
 
-function seedNpcs() {
-    if (state.rideVisual.seeded) return;
+function crowdCount(level) {
+    if (level === 'off') return 0;
+    if (level === 'few') return 4;
+    return 12;
+}
+
+function seedNpcs(desiredCount) {
+    const count = Math.max(0, desiredCount | 0);
+    const current = state.rideVisual.npcs?.length ?? 0;
+    if (state.rideVisual.seeded && current === count) return;
     state.rideVisual.seeded = true;
     const colors = ['#4C9AFF', '#FFB020', '#FF5F56', '#32D74B', '#BF5AF2', '#64D2FF'];
-    state.rideVisual.npcs = Array.from({ length: 9 }, (_, i) => ({
+    state.rideVisual.npcs = Array.from({ length: count }, (_, i) => ({
         id: uid(),
         relM: (Math.random() * 260 - 130) | 0, // -130..130m relative to rider
         speedBias: Math.random() * 1.6 - 0.8, // -0.8..0.8 m/s
@@ -1373,7 +1384,8 @@ function seedNpcs() {
 }
 
 function updateNpcs(dtSec) {
-    seedNpcs();
+    seedNpcs(crowdCount(state.rideVisual.crowd));
+    if (!state.rideVisual.npcs?.length) return;
     const riderMps = state.mps;
     for (const npc of state.rideVisual.npcs) {
         const npcMps = clamp(riderMps + npc.speedBias, 0, 25);
@@ -1423,95 +1435,15 @@ function updateRideAnimation(dtSec) {
     state.rideVisual.wheelAngle = (state.rideVisual.wheelAngle + wheelRadPerSec * dtSec) % (Math.PI * 2);
 }
 
-    function drawRiderSprite({ x, y, scale = 1, angle = 0, color = 'rgba(76,154,255,0.95)', accent = 'rgba(255,255,255,0.85)', wheelAngle = 0, crankAngle = 0, alpha = 1 }) {
-        const ctx = rideCtx;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-        ctx.scale(scale, scale);
-        ctx.globalAlpha = alpha;
-
-    const wheelR = 10;
-    const wheelBase = 38;
-    const rearX = -wheelBase / 2;
-    const frontX = wheelBase / 2;
-    const wheelY = 0;
-
-    // wheels
-    ctx.lineWidth = 2.2;
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.beginPath();
-    ctx.arc(rearX, wheelY, wheelR, 0, Math.PI * 2);
-    ctx.arc(frontX, wheelY, wheelR, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // spokes (simple)
-    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-    for (const wx of [rearX, frontX]) {
-        for (let i = 0; i < 2; i += 1) {
-            const a = wheelAngle + i * (Math.PI / 2);
-            ctx.beginPath();
-            ctx.moveTo(wx, wheelY);
-            ctx.lineTo(wx + Math.cos(a) * wheelR, wheelY + Math.sin(a) * wheelR);
-            ctx.stroke();
-        }
+    function drawRiderDot({ x, y, radius = 6, color = 'rgba(76,154,255,0.95)', alpha = 1 }) {
+        rideCtx.save();
+        rideCtx.globalAlpha = alpha;
+        rideCtx.fillStyle = color;
+        rideCtx.beginPath();
+        rideCtx.arc(x, y, radius, 0, Math.PI * 2);
+        rideCtx.fill();
+        rideCtx.restore();
     }
-
-    // frame
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2.6;
-    const seatX = rearX + 12;
-    const seatY = -12;
-    const bbX = 0;
-    const bbY = -6;
-    const headX = frontX - 8;
-    const headY = -16;
-
-    ctx.beginPath();
-    ctx.moveTo(rearX, wheelY);
-    ctx.lineTo(bbX, bbY);
-    ctx.lineTo(frontX, wheelY);
-    ctx.moveTo(seatX, seatY);
-    ctx.lineTo(bbX, bbY);
-    ctx.lineTo(headX, headY);
-    ctx.stroke();
-
-    // handlebar + saddle
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(headX - 6, headY - 2);
-    ctx.lineTo(headX + 10, headY - 2);
-    ctx.moveTo(seatX - 8, seatY - 2);
-    ctx.lineTo(seatX + 6, seatY - 2);
-    ctx.stroke();
-
-    // crank + pedal (animated by cadence)
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 2;
-    const crankLen = 10;
-    const px = bbX + Math.cos(crankAngle) * crankLen;
-    const py = bbY + Math.sin(crankAngle) * crankLen;
-    ctx.beginPath();
-    ctx.arc(bbX, bbY, 3.2, 0, Math.PI * 2);
-    ctx.moveTo(bbX, bbY);
-    ctx.lineTo(px, py);
-    ctx.stroke();
-
-    // rider head + torso
-    ctx.fillStyle = accent;
-    ctx.beginPath();
-    ctx.arc(seatX + 10, seatY - 16, 5.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(seatX + 8, seatY - 12);
-    ctx.lineTo(headX - 2, headY - 5);
-    ctx.stroke();
-
-    ctx.restore();
-}
 
 function drawGaugeArc({ x, y, r, pct, label, value, color }) {
     const start = Math.PI * 0.75;
@@ -1547,7 +1479,8 @@ function drawGaugeArc({ x, y, r, pct, label, value, color }) {
 function drawLeaderboard({ x, y, w, h }) {
     if (!state.rideVisual.leaderboard) return;
     const npcs = state.rideVisual.npcs;
-    if (!npcs.length) return;
+    const hasGhost = state.ghost.enabled && typeof state.ghost.relM === 'number';
+    if (!npcs.length && !hasGhost) return;
 
     rideCtx.save();
     rideCtx.translate(x, y);
@@ -1581,7 +1514,7 @@ function drawLeaderboard({ x, y, w, h }) {
     rideCtx.fillText('0 m', w - 44, yy);
     yy += 18;
 
-    if (state.ghost.enabled && typeof state.ghost.relM === 'number') {
+    if (hasGhost) {
         rideCtx.fillStyle = 'rgba(191,90,242,0.95)';
         rideCtx.fillRect(10, yy - 9, 8, 8);
         rideCtx.fillStyle = 'rgba(255,255,255,0.86)';
@@ -1675,6 +1608,7 @@ function drawMiniRouteStrip({ x, y, w, h }) {
 function drawRide(dtSec = 0) {
     state.rideVisual.enhanced = !!gfxEnhancedEl.checked;
     state.rideVisual.leaderboard = !!gfxLeaderboardEl.checked;
+    state.rideVisual.crowd = (gfxCrowdEl && typeof gfxCrowdEl.value === 'string') ? gfxCrowdEl.value : 'many';
 
     const { w, h } = prepareCanvas(ride, rideCtx);
     rideCtx.clearRect(0, 0, w, h);
@@ -1791,7 +1725,7 @@ function drawRide(dtSec = 0) {
     const vanishing = { x: farX, y: horizonY };
 
     // ghost rider (your previous run)
-    if (state.rideVisual.enhanced && state.ghost.enabled && typeof state.ghost.relM === 'number') {
+    if (state.ghost.enabled && typeof state.ghost.relM === 'number') {
         const rel = clamp(state.ghost.relM, -140, 140);
         const ahead = rel >= 0;
         const z = ahead ? clamp(rel, 0, 140) : clamp(Math.abs(rel), 0, 140);
@@ -1801,22 +1735,17 @@ function drawRide(dtSec = 0) {
         const cx = centerX + (farX - centerX) * t;
         const x = cx + (roadW * 0.04);
         const s = 0.55 + (1 - t) * 0.55;
-        const angle = Math.atan2(vanishing.y - (y - 6), vanishing.x - x);
-        drawRiderSprite({
+        drawRiderDot({
             x,
             y: y - 6,
-            scale: s,
-            angle,
+            radius: 3.5 + s * 2.2,
             color: 'rgba(191,90,242,0.95)',
-            accent: 'rgba(255,255,255,0.70)',
-            wheelAngle: state.rideVisual.wheelAngle + t,
-            crankAngle: state.rideVisual.crankAngle + t,
-            alpha: 0.75,
+            alpha: 0.8,
         });
     }
 
     // NPC riders
-    if (state.rideVisual.enhanced) {
+    if (state.rideVisual.crowd !== 'off') {
         for (const npc of state.rideVisual.npcs) {
             const rel = clamp(npc.relM, -140, 140);
             const ahead = rel >= 0;
@@ -1828,41 +1757,24 @@ function drawRide(dtSec = 0) {
             const laneOffset = (npc.id.charCodeAt(0) % 3) - 1;
             const x = cx + laneOffset * (roadW * 0.12) + (Math.sin((state.totalDistanceM + z) / 50) * 2);
             const s = 0.55 + (1 - t) * 0.55;
-            const angle = Math.atan2(vanishing.y - (y - 6), vanishing.x - x);
-            drawRiderSprite({
+            drawRiderDot({
                 x,
                 y: y - 6,
-                scale: s,
-                angle,
+                radius: 3.5 + s * 2.2,
                 color: npc.color,
-                accent: 'rgba(255,255,255,0.70)',
-                wheelAngle: state.rideVisual.wheelAngle + t,
-                crankAngle: state.rideVisual.crankAngle + t,
                 alpha: 0.65,
             });
         }
     }
 
     // main rider
-    if (state.rideVisual.enhanced) {
-        const angle = Math.atan2(vanishing.y - (riderY + 10), vanishing.x - riderX);
-        drawRiderSprite({
-            x: riderX,
-            y: riderY + 10,
-            scale: 1.15,
-            angle,
-            color: 'rgba(76,154,255,0.95)',
-            accent: 'rgba(255,255,255,0.86)',
-            wheelAngle: state.rideVisual.wheelAngle,
-            crankAngle: state.rideVisual.crankAngle,
-            alpha: 1,
-        });
-    } else {
-        rideCtx.fillStyle = 'rgba(76,154,255,0.95)';
-        rideCtx.beginPath();
-        rideCtx.arc(riderX, riderY, 12, 0, Math.PI * 2);
-        rideCtx.fill();
-    }
+    drawRiderDot({
+        x: riderX,
+        y: riderY + 10,
+        radius: state.rideVisual.enhanced ? 10 : 12,
+        color: 'rgba(76,154,255,0.95)',
+        alpha: 1,
+    });
 
     // HUD
     rideCtx.fillStyle = 'rgba(255,255,255,0.78)';
@@ -2002,24 +1914,25 @@ if (typeof initial.builderName === 'string') builderName.value = initial.builder
 if (Array.isArray(initial.builderSteps)) state.builder.steps = initial.builderSteps;
 if (typeof initial.gfxEnhanced === 'boolean') gfxEnhancedEl.checked = initial.gfxEnhanced;
 if (typeof initial.gfxLeaderboard === 'boolean') gfxLeaderboardEl.checked = initial.gfxLeaderboard;
+if (typeof initial.gfxCrowd === 'string' && gfxCrowdEl) gfxCrowdEl.value = initial.gfxCrowd;
 if (typeof initial.ghostEnabled === 'boolean') ghostEnabledEl.checked = initial.ghostEnabled;
 if (typeof initial.ghostAutoSave === 'boolean') ghostAutoSaveEl.checked = initial.ghostAutoSave;
 renderBuilder();
 
 migrateSingleGhostIfNeeded();
 renderGhostSelect();
-    if (typeof initial.ghostId === 'string' && initial.ghostId) {
-        ghostSelectEl.value = initial.ghostId;
-        setGhostActiveById(initial.ghostId);
-    } else if (ghostSelectEl instanceof HTMLSelectElement && ghostSelectEl.options.length > 1) {
-        // default to latest ghost in list
-        const id = ghostSelectEl.options[1].value;
-        ghostSelectEl.value = id;
-        setGhostActiveById(id);
-    } else {
-        state.ghost.run = null;
-        state.ghost.enabled = false;
-    }
+if (typeof initial.ghostId === 'string' && initial.ghostId) {
+    ghostSelectEl.value = initial.ghostId;
+    setGhostActiveById(initial.ghostId);
+} else if (ghostSelectEl instanceof HTMLSelectElement && ghostSelectEl.options.length > 1) {
+    // default to latest ghost in list
+    const id = ghostSelectEl.options[1].value;
+    ghostSelectEl.value = id;
+    setGhostActiveById(id);
+} else {
+    state.ghost.run = null;
+    state.ghost.enabled = false;
+}
 if (ghostNameEl) {
     ghostNameEl.value = state.ghost.run?.name ?? '';
 }
@@ -2105,12 +2018,13 @@ function persistSettings() {
         builderSteps: state.builder.steps,
         gfxEnhanced: !!gfxEnhancedEl.checked,
         gfxLeaderboard: !!gfxLeaderboardEl.checked,
+        gfxCrowd: gfxCrowdEl?.value ?? 'many',
         ghostEnabled: !!ghostEnabledEl?.checked,
         ghostAutoSave: !!ghostAutoSaveEl?.checked,
         ghostId: ghostSelectEl?.value ?? '',
     });
 }
-for (const el of [virtualSpeedEl, weightEl, difficultyEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl, ghostEnabledEl, ghostAutoSaveEl]) {
+for (const el of [virtualSpeedEl, weightEl, difficultyEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl, gfxCrowdEl, ghostEnabledEl, ghostAutoSaveEl]) {
     el.addEventListener('change', persistSettings);
 }
 
