@@ -63,7 +63,10 @@ const weightEl = $('weight');
 const difficultyEl = $('difficulty');
 const ghostEnabledEl = $('ghost-enabled');
 const ghostAutoSaveEl = $('ghost-auto-save');
-const btnGhostClear = $('btn-ghost-clear');
+const ghostSelectEl = $('ghost-select');
+const ghostNameEl = $('ghost-name');
+const btnGhostSaveName = $('btn-ghost-save-name');
+const btnGhostDelete = $('btn-ghost-delete');
 const cdaEl = $('cda');
 const crrEl = $('crr');
 const windEl = $('wind');
@@ -195,22 +198,109 @@ function loadGhostRun() {
     }
 }
 
-function saveGhostRun(run) {
+function loadGhostLibrary() {
     try {
-        localStorage.setItem('neoSimple:ghost', JSON.stringify(run));
+        const raw = localStorage.getItem('neoSimple:ghosts');
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter((g) => g && typeof g === 'object');
+    } catch {
+        return [];
+    }
+}
+
+function saveGhostLibrary(list) {
+    try {
+        localStorage.setItem('neoSimple:ghosts', JSON.stringify(list));
     } catch {
         // ignore
     }
 }
 
-function clearGhostRun() {
+function ensureGhostId() {
+    return `g_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+}
+
+function defaultGhostName(run) {
+    const date = new Date(run.createdAt || Date.now());
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mo = String(date.getMonth() + 1).padStart(2, '0');
+    return `${dd}.${mo} ${hh}:${mm}`;
+}
+
+function normalizeGhostRun(run) {
+    const samples = run?.samples;
+    if (!Array.isArray(samples) || samples.length < 2) return null;
+    const normalized = [];
+    for (const row of samples) {
+        if (!Array.isArray(row) || row.length !== 2) continue;
+        const t = Number(row[0]);
+        const d = Number(row[1]);
+        if (!Number.isFinite(t) || !Number.isFinite(d)) continue;
+        normalized.push([t, d]);
+    }
+    normalized.sort((a, b) => a[0] - b[0]);
+    if (normalized.length < 2) return null;
+    const createdAt = typeof run.createdAt === 'number' ? run.createdAt : Date.now();
+    const id = typeof run.id === 'string' && run.id ? run.id : ensureGhostId();
+    const name = typeof run.name === 'string' ? run.name : '';
+    const routeName = typeof run.routeName === 'string' ? run.routeName : '';
+    return {
+        id,
+        version: 1,
+        createdAt,
+        name: name || defaultGhostName({ createdAt }),
+        routeName,
+        samples: normalized,
+        totalTimeMs: typeof run.totalTimeMs === 'number' ? run.totalTimeMs : normalized[normalized.length - 1][0],
+        totalDistanceM: typeof run.totalDistanceM === 'number' ? run.totalDistanceM : normalized[normalized.length - 1][1],
+    };
+}
+
+function migrateSingleGhostIfNeeded() {
+    const lib = loadGhostLibrary();
+    if (lib.length) return;
+    const single = loadGhostRun();
+    if (!single) return;
+    const normalized = normalizeGhostRun(single);
+    if (!normalized) return;
+    saveGhostLibrary([normalized]);
     try {
         localStorage.removeItem('neoSimple:ghost');
     } catch {
         // ignore
     }
-    state.ghost.run = null;
-    state.ghost.relM = null;
+}
+
+function setGhostActiveById(id) {
+    const lib = loadGhostLibrary();
+    const found = lib.find((g) => g.id === id) ?? null;
+    state.ghost.run = found;
+    state.ghost.enabled = !!ghostEnabledEl?.checked && !!found;
+}
+
+function renderGhostSelect() {
+    if (!(ghostSelectEl instanceof HTMLSelectElement)) return;
+    const lib = loadGhostLibrary();
+    ghostSelectEl.innerHTML = '';
+    const optNone = document.createElement('option');
+    optNone.value = '';
+    optNone.textContent = '—';
+    ghostSelectEl.appendChild(optNone);
+
+    lib
+        .slice()
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .forEach((g) => {
+            const opt = document.createElement('option');
+            opt.value = g.id;
+            const label = g.name || defaultGhostName(g);
+            opt.textContent = `${label}${g.routeName ? ` · ${g.routeName}` : ''}`;
+            ghostSelectEl.appendChild(opt);
+        });
 }
 
 function ghostDistanceAt(run, tMs) {
@@ -984,17 +1074,30 @@ function stopWorkout() {
     if (state.ghost.recording) {
         state.ghost.recording = false;
         const run = {
+            id: ghostSelectEl?.value || undefined,
             version: 1,
             createdAt: Date.now(),
+            name: state.workout.steps[0]?.name ? `Workout: ${state.workout.steps[0].name}` : '',
             routeName: state.route.name,
             samples: state.ghost.samples,
             totalTimeMs: state.ghost.samples[state.ghost.samples.length - 1]?.[0] ?? 0,
             totalDistanceM: state.ghost.samples[state.ghost.samples.length - 1]?.[1] ?? 0,
         };
         if (ghostAutoSaveEl?.checked) {
-            saveGhostRun(run);
-            state.ghost.run = run;
-            state.ghost.enabled = !!ghostEnabledEl?.checked;
+            const normalized = normalizeGhostRun(run);
+            if (normalized) {
+                const lib = loadGhostLibrary();
+                const id = normalized.id;
+                const idx = lib.findIndex((g) => g.id === id);
+                const next = idx === -1 ? [normalized, ...lib] : lib.map((g, i) => i === idx ? normalized : g);
+                const capped = next.slice(0, 30);
+                saveGhostLibrary(capped);
+                renderGhostSelect();
+                if (ghostSelectEl) ghostSelectEl.value = id;
+                if (ghostNameEl) ghostNameEl.value = normalized.name ?? '';
+                state.ghost.run = normalized;
+                state.ghost.enabled = !!ghostEnabledEl?.checked;
+            }
         }
     }
     state.workout.running = false;
@@ -1903,16 +2006,71 @@ if (typeof initial.ghostEnabled === 'boolean') ghostEnabledEl.checked = initial.
 if (typeof initial.ghostAutoSave === 'boolean') ghostAutoSaveEl.checked = initial.ghostAutoSave;
 renderBuilder();
 
-state.ghost.run = loadGhostRun();
-state.ghost.enabled = !!ghostEnabledEl?.checked && !!state.ghost.run;
-btnGhostClear?.addEventListener('click', () => {
-    clearGhostRun();
+migrateSingleGhostIfNeeded();
+renderGhostSelect();
+    if (typeof initial.ghostId === 'string' && initial.ghostId) {
+        ghostSelectEl.value = initial.ghostId;
+        setGhostActiveById(initial.ghostId);
+    } else if (ghostSelectEl instanceof HTMLSelectElement && ghostSelectEl.options.length > 1) {
+        // default to latest ghost in list
+        const id = ghostSelectEl.options[1].value;
+        ghostSelectEl.value = id;
+        setGhostActiveById(id);
+    } else {
+        state.ghost.run = null;
+        state.ghost.enabled = false;
+    }
+if (ghostNameEl) {
+    ghostNameEl.value = state.ghost.run?.name ?? '';
+}
+
+btnGhostDelete?.addEventListener('click', () => {
+    if (!(ghostSelectEl instanceof HTMLSelectElement)) return;
+    const id = ghostSelectEl.value;
+    if (!id) return;
+    const lib = loadGhostLibrary().filter((g) => g.id !== id);
+    saveGhostLibrary(lib);
+    ghostSelectEl.value = '';
+    if (ghostNameEl) ghostNameEl.value = '';
+    state.ghost.run = null;
     state.ghost.enabled = false;
-    if (ghostEnabledEl) ghostEnabledEl.checked = false;
+    renderGhostSelect();
     persistSettings();
 });
+
+btnGhostSaveName?.addEventListener('click', () => {
+    if (!(ghostSelectEl instanceof HTMLSelectElement)) return;
+    const id = ghostSelectEl.value;
+    if (!id) return;
+    const nextName = String(ghostNameEl?.value ?? '').trim();
+    if (!nextName) return;
+    const lib = loadGhostLibrary();
+    const idx = lib.findIndex((g) => g.id === id);
+    if (idx === -1) return;
+    lib[idx] = { ...lib[idx], name: nextName };
+    saveGhostLibrary(lib);
+    renderGhostSelect();
+    ghostSelectEl.value = id;
+    setGhostActiveById(id);
+    persistSettings();
+});
+
+ghostSelectEl?.addEventListener('change', () => {
+    if (!(ghostSelectEl instanceof HTMLSelectElement)) return;
+    const id = ghostSelectEl.value;
+    if (ghostNameEl) ghostNameEl.value = '';
+    if (!id) {
+        state.ghost.run = null;
+        state.ghost.enabled = false;
+        persistSettings();
+        return;
+    }
+    setGhostActiveById(id);
+    if (ghostNameEl) ghostNameEl.value = state.ghost.run?.name ?? '';
+    persistSettings();
+});
+
 ghostEnabledEl?.addEventListener('change', () => {
-    state.ghost.run = loadGhostRun();
     state.ghost.enabled = !!ghostEnabledEl.checked && !!state.ghost.run;
     persistSettings();
 });
@@ -1949,6 +2107,7 @@ function persistSettings() {
         gfxLeaderboard: !!gfxLeaderboardEl.checked,
         ghostEnabled: !!ghostEnabledEl?.checked,
         ghostAutoSave: !!ghostAutoSaveEl?.checked,
+        ghostId: ghostSelectEl?.value ?? '',
     });
 }
 for (const el of [virtualSpeedEl, weightEl, difficultyEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl, ghostEnabledEl, ghostAutoSaveEl]) {
