@@ -61,6 +61,7 @@ const ctx = profile.getContext('2d');
 const virtualSpeedEl = $('virtual-speed');
 const weightEl = $('weight');
 const difficultyEl = $('difficulty');
+const intensityEl = $('intensity');
 const ghostEnabledEl = $('ghost-enabled');
 const ghostAutoSaveEl = $('ghost-auto-save');
 const ghostSelectEl = $('ghost-select');
@@ -420,7 +421,10 @@ function setControlMode(nextMode) {
 }
 
 function setPowerTarget(watts) {
-    xf.dispatch('ui:power-target-set', Math.round(clamp(watts, 0, 2500)));
+    const intensity = clamp(toInt(intensityEl?.value, 100) / 100, 0, 2);
+    const scaled = Math.round(clamp(watts * intensity, 0, 2500));
+    xf.dispatch('ui:power-target-set', scaled);
+    return scaled;
 }
 
 function setSlopeTarget(gradePercent) {
@@ -906,8 +910,9 @@ function applyWorkoutStep(step) {
     }
 
     setModeUi('workout');
-    setPowerTarget(step.control?.watts ?? 0);
-    state.workout.currentTargetText = `${Math.round(step.control?.watts ?? 0)} W`;
+    const base = Math.round(step.control?.watts ?? 0);
+    const scaled = setPowerTarget(base);
+    state.workout.currentTargetText = `${scaled} W`;
     targetEl.textContent = state.workout.currentTargetText;
 }
 
@@ -1310,9 +1315,18 @@ difficultyEl?.addEventListener('change', () => {
     setSlopeTarget(state.currentGrade);
 });
 
+intensityEl?.addEventListener('change', () => {
+    if (!state.workout.running) return;
+    if (state.mode !== 'workout') return;
+    const step = state.workout.steps[state.workout.stepIndex];
+    if (!step || step.control?.mode !== 'erg') return;
+    applyWorkoutStep(step);
+});
+
 function getRideSettings() {
     const weight = clamp(toFloat(weightEl.value, 80), 40, 140);
     const difficultyPct = clamp(toInt(difficultyEl?.value, 100), 0, 200);
+    const intensityPct = clamp(toInt(intensityEl?.value, 100), 0, 200);
     const cda = clamp(toFloat(cdaEl.value, 0.32), 0.15, 0.6);
     const crr = clamp(toFloat(crrEl.value, 0.005), 0.001, 0.02);
     const wind = clamp(toFloat(windEl.value, 0), -10, 10);
@@ -1320,7 +1334,7 @@ function getRideSettings() {
     const enhanced = !!gfxEnhancedEl.checked;
     const leaderboard = !!gfxLeaderboardEl.checked;
     const crowd = (gfxCrowdEl && typeof gfxCrowdEl.value === 'string') ? gfxCrowdEl.value : 'many';
-    return { weight, difficultyPct, cda, crr, wind, virtualEnabled, enhanced, leaderboard, crowd };
+    return { weight, difficultyPct, intensityPct, cda, crr, wind, virtualEnabled, enhanced, leaderboard, crowd };
 }
 
 function requiredPowerForSpeed({ v, grade, weightKg, crr, cda, wind }) {
@@ -1906,6 +1920,7 @@ const initial = loadSettings();
 if (typeof initial.virtualSpeed === 'boolean') virtualSpeedEl.checked = initial.virtualSpeed;
 if (typeof initial.weight === 'number') weightEl.value = String(initial.weight);
 if (typeof initial.difficultyPct === 'number') difficultyEl.value = String(initial.difficultyPct);
+if (typeof initial.intensityPct === 'number') intensityEl.value = String(initial.intensityPct);
 if (typeof initial.cda === 'number') cdaEl.value = String(initial.cda);
 if (typeof initial.crr === 'number') crrEl.value = String(initial.crr);
 if (typeof initial.wind === 'number') windEl.value = String(initial.wind);
@@ -2010,6 +2025,7 @@ function persistSettings() {
         virtualSpeed: s.virtualEnabled,
         weight: s.weight,
         difficultyPct: s.difficultyPct,
+        intensityPct: s.intensityPct,
         cda: s.cda,
         crr: s.crr,
         wind: s.wind,
@@ -2024,7 +2040,7 @@ function persistSettings() {
         ghostId: ghostSelectEl?.value ?? '',
     });
 }
-for (const el of [virtualSpeedEl, weightEl, difficultyEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl, gfxCrowdEl, ghostEnabledEl, ghostAutoSaveEl]) {
+for (const el of [virtualSpeedEl, weightEl, difficultyEl, intensityEl, cdaEl, crrEl, windEl, workoutSound, gfxEnhancedEl, gfxLeaderboardEl, gfxCrowdEl, ghostEnabledEl, ghostAutoSaveEl]) {
     el.addEventListener('change', persistSettings);
 }
 
@@ -2147,9 +2163,8 @@ function loop(now) {
     state.virtual.enabled = rideSettings.virtualEnabled;
     state.sim.difficulty = clamp(rideSettings.difficultyPct / 100, 0, 2);
 
-    const effectiveGrade = state.currentGrade * state.sim.difficulty;
     const vMps = state.virtual.enabled
-        ? solveSpeedMps({ powerW: state.powerW, grade: effectiveGrade, settings: rideSettings })
+        ? solveSpeedMps({ powerW: state.powerW, grade: state.currentGrade, settings: rideSettings })
         : state.speedMeasuredKmh / 3.6;
 
     // Smooth virtual speed a bit
