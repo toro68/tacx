@@ -1,4 +1,6 @@
-let workouts = [
+import { zwo } from './zwo.js';
+
+const builtInWorkouts = [
         `<workout_file>
     <author>Marinov</author>
     <name>Dijon</name>
@@ -109,21 +111,21 @@ let workouts = [
     </workout>
 </workout_file>
 `,
-`<workout_file>
-    <author>Auuki</author>
-    <name>Quiche</name>
-    <category>HIIT</category>
-    <description>This workout features three 6-minute intervals that train your body to better manage and tolerate lactate buildup. You'll begin 'at' your FTP, increase to Zone 5 intensity (over), then finish with a Zone 3 effort (under).</description>
-    <sportType>bike</sportType>
-    <tags>
-    </tags>
-    <workout>
-        <Warmup Duration="300" PowerLow="0.25" PowerHigh="0.966"/>
-        <SteadyState Duration="120" Power="0.5"/>
-        <SteadyState Duration="120" Power="0.901"/>
-        <SteadyState Duration="120" Power="1.053"/>
-        <SteadyState Duration="120" Power="0.763"/>
-        <SteadyState Duration="120" Power="0.5"/>
+	`<workout_file>
+	    <author>Auuki</author>
+	    <name>Quiche</name>
+	    <category>HIIT</category>
+	    <description>This workout features three 6-minute intervals that train your body to better manage and tolerate lactate buildup. You'll begin 'at' your FTP, increase to Zone 5 intensity (over), then finish with a Zone 3 effort (under).</description>
+	    <sportType>bike</sportType>
+	    <tags>
+	    </tags>
+	    <workout>
+	        <Warmup Duration="300" PowerLow="0.25" PowerHigh="0.66"/>
+	        <SteadyState Duration="120" Power="0.5"/>
+	        <SteadyState Duration="120" Power="0.901"/>
+	        <SteadyState Duration="120" Power="1.053"/>
+	        <SteadyState Duration="120" Power="0.763"/>
+	        <SteadyState Duration="120" Power="0.5"/>
         <SteadyState Duration="120" Power="0.901"/>
         <SteadyState Duration="120" Power="1.053"/>
         <SteadyState Duration="120" Power="0.763"/>
@@ -136,21 +138,21 @@ let workouts = [
     </workout>
 </workout_file>`
 ,
-`<workout_file>
-    <author>Auuki</author>
-    <name>Quiche +1</name>
-    <category>HIIT</category>
-    <description>This workout features two sets with 5 intervals each that train your body to better manage and tolerate lactate buildup. You'll begin 'at' your FTP, increase to Zone 5 intensity (over), then finish with a Zone 3 effort (under).</description>
-    <sportType>bike</sportType>
-    <tags>
-    </tags>
-    <workout>
-        <Warmup Duration="300" PowerLow="0.25" PowerHigh="0.966"/>
-        <SteadyState Duration="60" Power="0.5"/>
-        <SteadyState Duration="45" Power="0.901"/>
-        <SteadyState Duration="45" Power="1.053"/>
-        <SteadyState Duration="45" Power="0.763"/>
-        <SteadyState Duration="60" Power="0.5"/>
+	`<workout_file>
+	    <author>Auuki</author>
+	    <name>Quiche +1</name>
+	    <category>HIIT</category>
+	    <description>This workout features two sets with 5 intervals each that train your body to better manage and tolerate lactate buildup. You'll begin 'at' your FTP, increase to Zone 5 intensity (over), then finish with a Zone 3 effort (under).</description>
+	    <sportType>bike</sportType>
+	    <tags>
+	    </tags>
+	    <workout>
+	        <Warmup Duration="300" PowerLow="0.25" PowerHigh="0.66"/>
+	        <SteadyState Duration="60" Power="0.5"/>
+	        <SteadyState Duration="45" Power="0.901"/>
+	        <SteadyState Duration="45" Power="1.053"/>
+	        <SteadyState Duration="45" Power="0.763"/>
+	        <SteadyState Duration="60" Power="0.5"/>
         <SteadyState Duration="45" Power="0.901"/>
         <SteadyState Duration="45" Power="1.053"/>
         <SteadyState Duration="45" Power="0.763"/>
@@ -311,26 +313,91 @@ let workouts = [
     </workout>
 </workout_file>`
 ,
-`<workout_file>
-    <author>Marinov</author>
-    <name>Honey</name>
-    <category>Sweet Spot</category>
-    <description>4 times 10 min sweet spot intervals with 5 min recovery in-between.</description>
-    <sportType>bike</sportType>
-    <workout>
-        <Warmup Duration="300" PowerLow="0.32" PowerHigh="0.75"/>
-        <IntervalsT Repeat="2" OnDuration="30" OffDuration="30" OnPower="1.08" OffPower="0.44"/>
-        <SteadyState Duration="180" Power="0.44"/>
-        <IntervalsT Repeat="3" OnDuration="900" OffDuration="300" OnPower="0.90" OffPower="0.44"/>
-        <Cooldown Duration="600" PowerLow="0.44" PowerHigh="0.32"/>
-    </workout>
-</workout_file>`
-,
-`<workout_file>
-    <author>Marinov</author>
-    <name>Baguette</name>
-    <category>Base</category>
-    <description>The bread and butter of endurance training with efforts in Zone 1 and 2.</description>
+	`<workout_file>
+	    <author>Marinov</author>
+	    <name>Honey</name>
+	    <category>Sweet Spot</category>
+	    <description>4 times 10 min sweet spot intervals with 5 min recovery in-between.</description>
+	    <sportType>bike</sportType>
+	    <workout>
+	        <Warmup Duration="300" PowerLow="0.32" PowerHigh="0.75"/>
+	        <IntervalsT Repeat="2" OnDuration="30" OffDuration="30" OnPower="1.08" OffPower="0.44"/>
+	        <SteadyState Duration="180" Power="0.44"/>
+	        <IntervalsT Repeat="4" OnDuration="600" OffDuration="300" OnPower="0.90" OffPower="0.44"/>
+	        <Cooldown Duration="600" PowerLow="0.44" PowerHigh="0.32"/>
+	    </workout>
+	</workout_file>`
+	,
+	`<workout_file>
+	    <author>Tacx</author>
+	    <name>Olive Oil</name>
+	    <category>Base</category>
+	    <description>40 min endurance ride with a short tempo touch.</description>
+	    <sportType>bike</sportType>
+	    <tags></tags>
+	    <workout>
+	        <Warmup Duration="480" PowerLow="0.32" PowerHigh="0.60"/>
+	        <SteadyState Duration="1440" Power="0.65"/>
+	        <SteadyState Duration="240" Power="0.75"/>
+	        <Cooldown Duration="240" PowerLow="0.60" PowerHigh="0.32"/>
+	    </workout>
+	</workout_file>`
+	,
+	`<workout_file>
+	    <author>Tacx</author>
+	    <name>Croissant</name>
+	    <category>Sweet Spot</category>
+	    <description>3x7 min sweet spot with 2 min easy recoveries. ~38 min total.</description>
+	    <sportType>bike</sportType>
+	    <tags>
+	        <tag name="sweet"/>
+	        <tag name="spot"/>
+	    </tags>
+	    <workout>
+	        <Warmup Duration="360" PowerLow="0.32" PowerHigh="0.75"/>
+	        <IntervalsT Repeat="3" OnDuration="420" OffDuration="120" OnPower="0.90" OffPower="0.44"/>
+	        <Cooldown Duration="300" PowerLow="0.44" PowerHigh="0.32"/>
+	    </workout>
+	</workout_file>`
+	,
+	`<workout_file>
+	    <author>Tacx</author>
+	    <name>Risotto</name>
+	    <category>Threshold</category>
+	    <description>2x10 min at FTP with 3 min recovery. 40 min total.</description>
+	    <sportType>bike</sportType>
+	    <tags>
+	        <tag name="ftp"/>
+	        <tag name="threshold"/>
+	    </tags>
+	    <workout>
+	        <Warmup Duration="480" PowerLow="0.32" PowerHigh="0.75"/>
+	        <IntervalsT Repeat="2" OnDuration="600" OffDuration="180" OnPower="1.0" OffPower="0.5"/>
+	        <Cooldown Duration="360" PowerLow="0.5" PowerHigh="0.32"/>
+	    </workout>
+	</workout_file>`
+	,
+	`<workout_file>
+	    <author>Tacx</author>
+	    <name>Sriracha</name>
+	    <category>VO2</category>
+	    <description>5x3 min @115% with 2 min recovery. ~38 min total.</description>
+	    <sportType>bike</sportType>
+	    <tags>
+	        <tag name="vo2"/>
+	    </tags>
+	    <workout>
+	        <Warmup Duration="480" PowerLow="0.32" PowerHigh="0.75"/>
+	        <IntervalsT Repeat="5" OnDuration="180" OffDuration="120" OnPower="1.15" OffPower="0.5"/>
+	        <Cooldown Duration="300" PowerLow="0.5" PowerHigh="0.32"/>
+	    </workout>
+	</workout_file>`
+	,
+	`<workout_file>
+	    <author>Marinov</author>
+	    <name>Baguette</name>
+	    <category>Base</category>
+	    <description>The bread and butter of endurance training with efforts in Zone 1 and 2.</description>
     <sportType>bike</sportType>
     <tags>
     </tags>
@@ -455,22 +522,22 @@ let workouts = [
         <SteadyState Duration="300" Power="1.32" />
     </workout>
 </workout_file>`,
-`<workout_file>
-    <author>Auuki</author>
-    <name>Ramp Test</name>
-    <category>Test</category>
-    <subcategory>Power Ramp</subcategory>
-    <description>Ramp test proceeding in steps of 6% of previous FTP for 60 seconds. Do until exhaustion and take 75% of the power you did in the last interval you’ve reached. That's your new FTP.</description>
-    <sportType>bike</sportType>
-    <tags>
-    </tags>
-    <workout>
-        <SteadyState Duration=" 300" Power="0.46" />
-        <SteadyState Duration="60" Power="0.52" />
-        <SteadyState Duration="60" Power="0.58" />
-        <SteadyState Duration="60" Power="0.64" />
-        <SteadyState Duration="60" Power="0.70" />
-        <SteadyState Duration="60" Power="0.76" />
+	`<workout_file>
+	    <author>Auuki</author>
+	    <name>Ramp Test</name>
+	    <category>Test</category>
+	    <subcategory>Power Ramp</subcategory>
+	    <description>Ramp test proceeding in steps of 6% of previous FTP for 60 seconds. Do until exhaustion and take 75% of the power you did in the last interval you’ve reached. That's your new FTP.</description>
+	    <sportType>bike</sportType>
+	    <tags>
+	    </tags>
+	    <workout>
+	        <SteadyState Duration="300" Power="0.46" />
+	        <SteadyState Duration="60" Power="0.52" />
+	        <SteadyState Duration="60" Power="0.58" />
+	        <SteadyState Duration="60" Power="0.64" />
+	        <SteadyState Duration="60" Power="0.70" />
+	        <SteadyState Duration="60" Power="0.76" />
         <SteadyState Duration="60" Power="0.82" />
         <SteadyState Duration="60" Power="0.88" />
         <SteadyState Duration="60" Power="0.94" />
@@ -494,6 +561,223 @@ let workouts = [
         <SteadyState Duration="60" Power="2.02" />
     </workout>
 </workout_file>`,
+`<workout_file>
+    <author>Auuki</author>
+    <name>Hill Ladder 4-3-2</name>
+    <category>Run</category>
+    <description>Treadmill hill session: 5 min @1% warm-up, then 10x [4%-30s, 3%-30s, 2%-1 min, 1%-1 min, 0%-1 min, repeat 4%-30s, 3%-30s, 2%-1 min, 1%-1 min, 0%-1 min]; finish with 5 min @0% cool-down.</description>
+    <sportType>run</sportType>
+    <tags>
+        <tag name="hills"/>
+        <tag name="treadmill"/>
+    </tags>
+        <workout>
+        <IntervalsT Repeat="1" OnDuration="300" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="4" />
+        <IntervalsT Repeat="1" OnDuration="30" OffDuration="0" OnSlope="3" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="2" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="1" />
+        <IntervalsT Repeat="1" OnDuration="60" OffDuration="0" OnSlope="0" />
+        <IntervalsT Repeat="1" OnDuration="300" OffDuration="0" OnSlope="0" />
+    </workout>
+</workout_file>`,
+`<workout_file>
+    <author>Tacx</author>
+    <name>30min 30/30 VO2</name>
+    <category>VO2 Max</category>
+    <description>30 min total: 3x6 min 30/30 @120% FTP (30s on / 30s off), 2 min easy between sets.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.40" PowerHigh="0.75"/>
+        <IntervalsT Repeat="6" OnDuration="30" OffDuration="30" OnPower="1.20" OffPower="0.50"/>
+        <SteadyState Duration="120" Power="0.50"/>
+        <IntervalsT Repeat="6" OnDuration="30" OffDuration="30" OnPower="1.20" OffPower="0.50"/>
+        <SteadyState Duration="120" Power="0.50"/>
+        <IntervalsT Repeat="6" OnDuration="30" OffDuration="30" OnPower="1.20" OffPower="0.50"/>
+        <Cooldown Duration="180" PowerLow="0.50" PowerHigh="0.30"/>
+    </workout>
+</workout_file>`,
+`<workout_file>
+    <author>Tacx</author>
+    <name>30min 3x6 Threshold</name>
+    <category>Threshold</category>
+    <description>30 min total: 3x6 min @102% FTP, 3 min easy between intervals.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="240" PowerLow="0.40" PowerHigh="0.75"/>
+        <SteadyState Duration="360" Power="1.02"/>
+        <SteadyState Duration="180" Power="0.55"/>
+        <SteadyState Duration="360" Power="1.02"/>
+        <SteadyState Duration="180" Power="0.55"/>
+        <SteadyState Duration="360" Power="1.02"/>
+        <Cooldown Duration="120" PowerLow="0.55" PowerHigh="0.30"/>
+    </workout>
+</workout_file>`,
+`<workout_file>
+    <author>Tacx</author>
+    <name>30min 2x10 Sweet Spot</name>
+    <category>Sweet Spot</category>
+    <description>30 min total: 2x10 min @90% FTP, 3 min easy between blocks.</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="sweet"/>
+        <tag name="spot"/>
+    </tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.40" PowerHigh="0.75"/>
+        <SteadyState Duration="600" Power="0.90"/>
+        <SteadyState Duration="180" Power="0.55"/>
+        <SteadyState Duration="600" Power="0.90"/>
+        <Cooldown Duration="120" PowerLow="0.55" PowerHigh="0.30"/>
+    </workout>
+</workout_file>`,
+`<workout_file>
+    <author>Tacx</author>
+    <name>30min Over-Under 3x6</name>
+    <category>HIIT</category>
+    <description>30 min total: 3x6 min over-under (1 min @105% / 1 min @90%), 2 min easy between sets.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="360" PowerLow="0.40" PowerHigh="0.75"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="120" Power="0.55"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="120" Power="0.55"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <SteadyState Duration="60" Power="1.05"/>
+        <SteadyState Duration="60" Power="0.90"/>
+        <Cooldown Duration="120" PowerLow="0.55" PowerHigh="0.30"/>
+    </workout>
+</workout_file>`,
+`<workout_file>
+    <author>Tacx</author>
+    <name>30min Sprint 2x10</name>
+    <category>HIIT</category>
+    <description>30 min total: 2x10 reps (15s @150% / 45s easy), 3 min easy between sets.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.40" PowerHigh="0.75"/>
+        <IntervalsT Repeat="10" OnDuration="15" OffDuration="45" OnPower="1.50" OffPower="0.50"/>
+        <SteadyState Duration="180" Power="0.55"/>
+        <IntervalsT Repeat="10" OnDuration="15" OffDuration="45" OnPower="1.50" OffPower="0.50"/>
+        <Cooldown Duration="120" PowerLow="0.55" PowerHigh="0.30"/>
+    </workout>
+</workout_file>`,
 ];
 
-export { workouts };
+const workouts = builtInWorkouts;
+const parsedWorkouts = workouts.map((raw) => zwo.readToInterval(raw));
+
+export { workouts, parsedWorkouts };

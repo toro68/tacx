@@ -94,7 +94,7 @@ function FTMS(args = {}) {
     async function setPowerTarget(args = {}) {
         const control = service.characteristics.control;
 
-        if(!exists(control)) return false;
+        if(!exists(control) || !control.isReady()) return false;
 
         const res = await control.writeWithRetry(
             controlParser.powerTarget.encode(args),
@@ -107,7 +107,7 @@ function FTMS(args = {}) {
     async function setResistanceTarget(args = {}) {
         const control = service.characteristics.control;
 
-        if(!exists(control)) return false;
+        if(!exists(control) || !control.isReady()) return false;
 
         const res = await control.writeWithRetry(
             controlParser.resistanceTarget.encode(args),

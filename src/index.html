@@ -38,6 +38,7 @@
                     <div id="home-page-wrapper">
 
                         <header class="connections-header page-header">
+                            <div id="sr-status" class="sr-only" aria-live="polite"></div>
                             <connection-switch for="ble:controllable" id="switch-controllable" class="connection-switch">
                                 <div class="connection-switch--indicator off"></div>
                                 <div class="connection-switch--label">Controllable</div>
@@ -73,7 +74,7 @@
                                                       class="data-tile-small--value">--</kcal-avg>
                                         </div>
                                     </z-stack-item>
-                                <z-stack>
+                                </z-stack>
                             </div>
 
                             <div class="data-tile" id="data-tile--power">
@@ -81,7 +82,7 @@
                                     <z-stack-item class="active">
                                         <h2 class="data-tile--heading">Power</h2>
                                         <div class="data-tile--value-cont">
-                                            <power-value id=power-value"
+                                            <power-value id="power-value"
                                                          class="data-tile--value"
                                                          prop="db:power1s">--</power-value>
                                         </div>
@@ -89,7 +90,7 @@
                                     <z-stack-item>
                                         <h2 class="data-tile--heading">Power 3s</h2>
                                         <div class="data-tile--value-cont">
-                                            <power-value id=power-value-3s"
+                                            <power-value id="power-value-3s"
                                                          class="data-tile--value"
                                                          prop="db:power3s">--</power-value>
                                         </div>
@@ -145,7 +146,7 @@
                             <div class="data-tile--small wide" id="data-tile--slope">
                                 <h2 class="data-tile-small--heading">Slope</h2>
                                 <div class="data-tile-small--value-cont">
-                                    <slope-target id=slope-target-value"
+                                    <slope-target id="slope-target-value"
                                                   class="data-tile-small--value">--</slope-target>
                                 </div>
                             </div>
@@ -172,7 +173,7 @@
                                                 id="power-target-ftp"
                                                 class="data-tile-target--value active">
                                                 --
-                                            </power-ftp-value>
+                                            </power-target-ftp>
                                         </div>
                                     </z-stack-item>
                                 </z-stack>
@@ -188,25 +189,25 @@
                                 <z-stack data-key="cadenceZStack">
                                     <z-stack-item class="active">
                                         <h2 class="data-tile--heading">Cadence</h2>
-                                        <cadence-value id=cadence-value"
+                                        <cadence-value id="cadence-value"
                                                        class="data-tile--value">--</cadence-value>
                                     </z-stack-item>
                                     <z-stack-item>
                                         <h2 class="data-tile--heading">Cadence Lap</h2>
-                                        <cadence-lap-value id=cadence-lap-value"
+                                        <cadence-lap-value id="cadence-lap-value"
                                                            class="data-tile--value">--</cadence-lap-value>
                                     </z-stack-item>
                                     <z-stack-item>
                                         <h2 class="data-tile--heading">Cadence Avg</h2>
-                                        <cadence-avg-value id=cadence-avg-value"
+                                        <cadence-avg-value id="cadence-avg-value"
                                                            class="data-tile--value">--</cadence-avg-value>
                                     </z-stack-item>
                                     <z-stack-item>
                                         <h2 class="data-tile--heading">Cadence Target</h2>
                                         <cadence-group class="data-tile--value-cont complex">
-                                            <cadence-value id=cadence-value"
+                                            <cadence-value id="cadence-value"
                                                            class="data-tile--value">--</cadence-value>
-                                            <cadence-target id=cadence-target-value"
+                                            <cadence-target id="cadence-target-value"
                                                             class="data-tile-target--value active"></cadence-target>
                                         </cadence-group>
                                     </z-stack-item>
@@ -261,12 +262,24 @@
                             </div>
 
                             <data-tile-switch-group class="data-tile--switch--group">
-                                <div class="data-tile--switch switch-item switch-0 active" index="0">
+                                <button
+                                    type="button"
+                                    class="data-tile--switch switch-item switch-0 active"
+                                    index="0"
+                                    aria-label="Show primary data tiles"
+                                    aria-pressed="true"
+                                >
                                     <div class="data-tile--switch--icon"></div>
-                                </div>
-                                <div class="data-tile--switch switch-item switch-1" index="1">
+                                </button>
+                                <button
+                                    type="button"
+                                    class="data-tile--switch switch-item switch-1"
+                                    index="1"
+                                    aria-label="Show secondary data tiles"
+                                    aria-pressed="false"
+                                >
                                     <div class="data-tile--switch--icon"></div>
-                                </div>
+                                </button>
                             </data-tile-switch-group>
                         </div> <!-- end data-tiles -->
 
@@ -450,37 +463,41 @@
                                 <div class="editor--body"></div>
                             </div>
                             <div class="editor--controls">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="editor--add editor--icon"
-                                    viewBox="0 0 24 24"
-                                    height="24px" width="24px" fill="#FFFFFF">
-                                    <path d="M0 0h24v24H0V0z" fill="none"/>
-                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="editor--remove editor--icon"
-                                    height="24px"
-                                    width="24px"
-                                    viewBox="0 0 24 24" fill="#FFFFFF">
-                                    <path d="M0 0h24v24H0V0z" fill="none"/>
-                                    <path d="M19 13H5v-2h14v2z"/>
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="editor--save editor--icon"
-                                    height="24px"
-                                    width="24px"
-                                    viewBox="0 0 24 24" fill="#FFFFFF">
-                                    <path d="M0 0h24v24H0V0z" fill="none"/>
-                                    <path d="M17 3H3v18h18V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
-                                </svg>
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="editor--download editor--icon"
-                                    height="24px"
-                                    width="24px"
-                                    viewBox="0 0 24 24" fill="#FFFFFF">
-                                    <path d="M0 0h24v24H0V0z" fill="none"/>
-                                    <path d="M19 12v7H5v-7H3v9h18v-9h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
-                                </svg>
+                                <button type="button" class="editor--add editor--icon" aria-label="Add interval">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        height="24px" width="24px">
+                                        <path d="M0 0h24v24H0V0z" fill="none"/>
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="editor--remove editor--icon" aria-label="Remove interval">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        height="24px"
+                                        width="24px"
+                                        viewBox="0 0 24 24">
+                                        <path d="M0 0h24v24H0V0z" fill="none"/>
+                                        <path d="M19 13H5v-2h14v2z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="editor--save editor--icon" aria-label="Save workout">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        height="24px"
+                                        width="24px"
+                                        viewBox="0 0 24 24">
+                                        <path d="M0 0h24v24H0V0z" fill="none"/>
+                                        <path d="M17 3H3v18h18V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="editor--download editor--icon" aria-label="Download workout">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        height="24px"
+                                        width="24px"
+                                        viewBox="0 0 24 24">
+                                        <path d="M0 0h24v24H0V0z" fill="none"/>
+                                        <path d="M19 12v7H5v-7H3v9h18v-9h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+                                    </svg>
+                                </button>
                             </div> <!-- end editor--controls -->
                         </form>
                     </div> <!-- end editor--cont -->
@@ -1399,24 +1416,21 @@
                             <div class="list--row--inner option">
                                 <div class="option--name">Sound</div>
                                 <sound-control class="option--value sound--row">
-                                    <svg id="sound--mute"
-                                         class="sound--item control--btn--icon"
-                                         width="24px"
-                                         height="24px">
-                                        <use href="#icon--sound--mute"></use>
-                                    </svg>
-                                    <svg id="sound--down"
-                                         class="sound--item control--btn--icon"
-                                         width="24px"
-                                         height="24px">
-                                        <use href="#icon--sound--down"></use>
-                                    </svg>
-                                    <svg id="sound--up"
-                                         class="sound--item control--btn--icon"
-                                         width="24px"
-                                         height="24px">
-                                        <use href="#icon--sound--up"></use>
-                                    </svg>
+                                    <button id="sound--mute" type="button" class="sound--item" aria-label="Mute sound">
+                                        <svg class="control--btn--icon" width="24px" height="24px">
+                                            <use href="#icon--sound--mute"></use>
+                                        </svg>
+                                    </button>
+                                    <button id="sound--down" type="button" class="sound--item" aria-label="Decrease volume">
+                                        <svg class="control--btn--icon" width="24px" height="24px">
+                                            <use href="#icon--sound--down"></use>
+                                        </svg>
+                                    </button>
+                                    <button id="sound--up" type="button" class="sound--item" aria-label="Increase volume">
+                                        <svg class="control--btn--icon" width="24px" height="24px">
+                                            <use href="#icon--sound--up"></use>
+                                        </svg>
+                                    </button>
                                     <div id="sound--volume" class="sound--volume sound--item">
                                         100%
                                     </div>
@@ -1497,41 +1511,41 @@
                 <!-- <div class="fixed-bottom--cont"> -->
                 <workout-name id="workout-name">Free ride</workout-name>
                 <watch-control id="watch" class="watch">
-                    <div id="watch-start" class="control--btn">
+                    <button type="button" id="watch-start" class="control--btn" aria-label="Start">
                         <svg class="control--btn--icon" width="24" height="24">
                             <use href="#icon--play-btn" />
                         </svg>
-                    </div>
+                    </button>
 
-                    <div id="watch-pause" class="control--btn" >
+                    <button type="button" id="watch-pause" class="control--btn" aria-label="Pause">
                         <svg class="control--btn--icon" width="24" height="24">
                             <use href="#icon--pause-btn" />
                         </svg>
-                    </div>
+                    </button>
 
-                    <div id="watch-back" class="control--btn">
+                    <button type="button" id="watch-back" class="control--btn" aria-label="Back">
                         <svg class="control--btn--icon" width="24" height="24">
                             <use href="#icon--skip-previous-btn"></use>
                         </svg>
-                    </div>
+                    </button>
 
-                    <div id="watch-lap" class="control--btn">
+                    <button type="button" id="watch-lap" class="control--btn" aria-label="Lap">
                         <svg class="control--btn--icon" width="24" height="24">
                             <use href="#icon--watch-btn"></use>
                         </svg>
-                    </div>
+                    </button>
 
-                    <div id="watch-stop" class="control--btn">
+                    <button type="button" id="watch-stop" class="control--btn" aria-label="Stop">
                         <svg class="control--btn--icon" width="24" height="24">
                             <use href="#icon--stop-btn"></use>
                         </svg>
-                    </div>
+                    </button>
 
-                    <div id="activity-save" class="control--btn">
+                    <button type="button" id="activity-save" class="control--btn" aria-label="Save activity">
                         <svg class="control--btn--icon" width="24" height="24">
                             <use href="#icon--file"></use>
                         </svg>
-                    </div>
+                    </button>
                 </watch-control> <!-- end controls -->
                     <!-- </div>  -->
 

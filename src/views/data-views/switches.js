@@ -17,7 +17,7 @@ class SwitchGroup extends HTMLElement {
         this.config();
 
         xf.sub(`db:${this.prop}`, this.onState.bind(this), this.signal);
-        this.addEventListener('pointerup', this.onSwitch.bind(this), this.signal);
+        this.addEventListener('click', this.onSwitch.bind(this), this.signal);
     }
     disconnectedCallback() {
         this.abortController.abort();
@@ -58,8 +58,10 @@ class SwitchGroup extends HTMLElement {
         this.$switchList.forEach(function(s, i) {
             if(equals(i, state)) {
                 s.classList.add('active');
+                if(s.tagName === 'BUTTON') s.setAttribute('aria-pressed', 'true');
             } else {
                 s.classList.remove('active');
+                if(s.tagName === 'BUTTON') s.setAttribute('aria-pressed', 'false');
             }
         });
     }

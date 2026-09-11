@@ -43,6 +43,7 @@ import { delay, wait } from './functions/async.js';
 import { debounce } from './functions/debounce.js';
 import { compose, compose2, pipe, repeat, curry2, once } from './functions/functional.js';
 import { xf } from './functions/events.js';
+import { log, logger } from './functions/logger.js';
 import {
     equals,
     isNull,
@@ -140,4 +141,8 @@ export {
     xor,
     setUint24LE,
     getUint24LE,
+
+    // logging
+    log,
+    logger,
 };

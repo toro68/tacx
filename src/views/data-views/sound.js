@@ -23,9 +23,9 @@ class SoundControl extends DataView {
         this.$volume = this.querySelector(this.selectors.volume);
     }
     subs() {
-        this.$mute.addEventListener(`pointerup`, this.onMute.bind(this), this.signal);
-        this.$down.addEventListener(`pointerup`, this.onDown.bind(this), this.signal);
-        this.$up.addEventListener(`pointerup`, this.onUp.bind(this), this.signal);
+        this.$mute.addEventListener(`click`, this.onMute.bind(this), this.signal);
+        this.$down.addEventListener(`click`, this.onDown.bind(this), this.signal);
+        this.$up.addEventListener(`click`, this.onUp.bind(this), this.signal);
         xf.sub(`${this.prop}`, this.onUpdate.bind(this), this.signal);
     }
     onMute() {
@@ -43,4 +43,3 @@ class SoundControl extends DataView {
 }
 
 customElements.define('sound-control', SoundControl);
-

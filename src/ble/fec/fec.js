@@ -3,9 +3,7 @@
 //
 import { exists, expect, compose2, wait } from '../../functions.js';
 import { uuids, } from '../web-ble.js';
-import { ControlMode, } from '../enums.js';
 import { Service } from '../service.js';
-import { Characteristic } from '../characteristic.js';
 import { message as fecParser } from './message.js';
 import messages from './messages.js';
 import { userData } from '../userData.js';
@@ -43,25 +41,24 @@ function FEC(args = {}) {
         return msg;
     }
 
-    function onControlResponse(msg) {
-        console.log(`ble: fec: on-control-response: `, msg);
-        let control = service.characteristics.control;
-        control.release();
-    }
-
+    let protocolInFlight = null;
     async function protocol() {
-        let control = service.characteristics.control;
-
-        await wait(txRate);
-        console.log(`${userData.userWeight()} ${userData.bikeWeight()}`);
-        let resUserData = await setUserData({
-            userWeight: userData.userWeight(),
-            bikeWeight: userData.bikeWeight()
-        });
-        await wait(txRate);
-        let resWind = await setWindResistance();
-
-        return resUserData && resWind;
+        if(protocolInFlight) return await protocolInFlight;
+        protocolInFlight = (async () => {
+            await wait(txRate);
+            const resUserData = await setUserData({
+                userWeight: userData.userWeight(),
+                bikeWeight: userData.bikeWeight()
+            });
+            await wait(txRate);
+            const resWind = await setWindResistance();
+            return resUserData && resWind;
+        })();
+        try {
+            return await protocolInFlight;
+        } finally {
+            protocolInFlight = null;
+        }
     }
 
     const spec = {
@@ -96,7 +93,7 @@ function FEC(args = {}) {
 
     // {resistance: Int} -> Bool
     async function setResistanceTarget(args = {}) {
-        let control = service.characteristics.control;
+        const control = service.characteristics.control;
         if(!exists(control)) return false;
 
         let res = await control.write(
@@ -110,7 +107,15 @@ function FEC(args = {}) {
     async function setSimulation(args = {}) {
         let control = service.characteristics.control;
 
-        if(!exists(control) || !control.isReady()) return false;
+        if(!exists(control)) return false;
+
+        if(!control.isReady()) {
+            // Avoid treating in-flight control messages as a protocol/setup failure.
+            for(let i = 0; i < 30 && !control.isReady(); i++) {
+                await wait(50);
+            }
+            if(!control.isReady()) return false;
+        }
 
         control.block();
 
@@ -163,4 +168,3 @@ function FEC(args = {}) {
 }
 
 export default FEC;
-

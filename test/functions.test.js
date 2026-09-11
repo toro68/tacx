@@ -55,6 +55,7 @@ import {
     toBool,
     dataviewToArray,
     dataviewToString,
+    arrayBufferToArray,
     stringToCharCodes,
 
     // bits
@@ -62,6 +63,23 @@ import {
     nthBitToBool,
     xor,
 } from '../src/functions.js';
+
+describe('arrayBufferToArray', () => {
+    test('supports ArrayBuffer', () => {
+        const buf = new Uint8Array([1,2,3]).buffer;
+        expect(arrayBufferToArray(buf)).toStrictEqual([1,2,3]);
+    });
+
+    test('supports DataView', () => {
+        const view = new DataView(new Uint8Array([4,5]).buffer);
+        expect(arrayBufferToArray(view)).toStrictEqual([4,5]);
+    });
+
+    test('supports TypedArray', () => {
+        const view = new Uint8Array([6,7,8]);
+        expect(arrayBufferToArray(view)).toStrictEqual([6,7,8]);
+    });
+});
 
 describe('exists', () => {
     describe('does not exist', () => {

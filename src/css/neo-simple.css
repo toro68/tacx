@@ -3,6 +3,16 @@
     --neo-gap: 12px;
     --neo-pad: 12px;
     --neo-pad-lg: 16px;
+    --neo-font-size: 15px;
+}
+
+html {
+    font-size: 14px;
+}
+
+body {
+    font-size: var(--neo-font-size);
+    line-height: 1.5;
 }
 
 .neo-container {
@@ -16,6 +26,57 @@
 .neo-stack {
     display: grid;
     gap: var(--neo-gap);
+}
+
+.neo-screen {
+    display: grid;
+    gap: var(--neo-gap);
+}
+
+body.neo-workout-running #screen-setup {
+    display: none;
+}
+
+body:not(.neo-workout-running) #screen-ride {
+    display: none;
+}
+
+body:not(.neo-workout-running) #ride-settings {
+    display: none;
+}
+
+/* Desktop ride layout: 2 columns (visual left, settings right) */
+@media (min-width: 820px) {
+    body.neo-workout-running #screen-ride {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+        grid-template-areas:
+            "sticky sticky"
+            "visual settings";
+        align-items: start;
+    }
+
+    body.neo-workout-running #ride-sticky-slot {
+        grid-area: sticky;
+    }
+
+    body.neo-workout-running #ride-visual-slot {
+        grid-area: visual;
+        min-width: 0;
+    }
+
+    body.neo-workout-running #ride-settings {
+        grid-area: settings;
+        align-self: start;
+        min-width: 0;
+    }
+}
+
+#btn-ride-settings {
+    display: none;
+}
+
+body.neo-workout-running #btn-ride-settings {
+    display: inline-flex;
 }
 
 .neo-row {
@@ -63,8 +124,15 @@
 
 .neo-title {
     margin: 8px 0;
-    font-size: 24px;
+    font-size: 26px;
     line-height: 1.2;
+}
+
+.neo-icon {
+    display: inline-flex;
+    width: 1.2em;
+    justify-content: center;
+    opacity: 0.9;
 }
 
 .neo-subtitle {
@@ -73,6 +141,36 @@
 }
 
 /* Focus UI during workouts */
+.neo-load-adjust {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.neo-load-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.neo-load-controls input[type="range"] {
+    flex: 1;
+    min-width: 40px;
+    min-height: 44px;
+    accent-color: #4C9AFF;
+}
+
+.neo-load-controls .button {
+    min-height: 44px;
+    flex-shrink: 0;
+}
+
+body.neo-mode-sim .neo-erg-adjust,
+body.neo-mode-workout .neo-sim-adjust {
+    display: none;
+}
+
 body.neo-workout-running .neo-subtitle {
     display: none;
 }
@@ -81,7 +179,31 @@ body.neo-workout-running #builder-details {
     display: none;
 }
 
+body.neo-mode-sim #builder-details {
+    display: none;
+}
+
 body.neo-workout-running #section-hills {
+    display: none;
+}
+
+body.neo-workout-running .neo-workout-controls label {
+    display: none;
+}
+
+body.neo-workout-running #btn-workout-start {
+    display: none;
+}
+
+body.neo-workout-running #workout-visual {
+    margin-top: 8px;
+}
+
+body.neo-mode-workout #section-hills {
+    display: none;
+}
+
+body.neo-mode-sim #workout-visual {
     display: none;
 }
 
@@ -94,13 +216,25 @@ body.neo-workout-running .neo-sticky {
     padding-bottom: 10px;
 }
 
+@media (max-width: 520px) {
+    body.neo-workout-running .neo-pill-device,
+    body.neo-workout-running .neo-pill-status {
+        display: none;
+    }
+}
+
 body.neo-workout-running .neo-title {
     font-size: 20px;
     margin: 6px 0;
 }
 
+#ride {
+    display: block;
+    height: clamp(300px, 42vw, 520px);
+}
+
 body.neo-workout-running #ride {
-    height: 360px !important;
+    height: clamp(340px, 44vw, 560px);
 }
 
 body.neo-workout-running #workout-timeline {
@@ -121,9 +255,21 @@ body.neo-workout-running #workout-timeline {
     background: color-mix(in srgb, var(--background-color-2) 88%, white 12%);
     color: var(--foreground-color);
     border-radius: 10px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     line-height: 1;
     cursor: pointer;
+    font-size: var(--neo-font-size);
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+}
+
+.button.neo-button-compact {
+    min-height: 36px;
+    padding: 9px 10px;
+    font-size: 13px;
 }
 
 .button:hover {
@@ -133,6 +279,16 @@ body.neo-workout-running #workout-timeline {
 .button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+.button:disabled:hover {
+    background: color-mix(in srgb, var(--background-color-2) 88%, white 12%);
+}
+
+.button[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .button:focus-visible,
@@ -150,28 +306,184 @@ select.input:focus-visible {
     background: rgba(76, 154, 255, 0.35);
 }
 
+.button.danger {
+    border-color: rgba(239, 68, 68, 0.9);
+    background: rgba(239, 68, 68, 0.14);
+}
+.button.danger:hover {
+    background: rgba(239, 68, 68, 0.22);
+}
+
+.neo-stop-armed {
+    border-color: rgba(239, 68, 68, 0.95) !important;
+    background: rgba(239, 68, 68, 0.32) !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
 .input {
     appearance: none;
     border: 1px solid var(--border-color);
     background: rgba(255, 255, 255, 0.92);
     color: #111;
     border-radius: 10px;
-    padding: 9px 10px;
-    height: 38px;
+    padding: 11px 12px;
+    height: 42px;
+    font-size: var(--neo-font-size);
+    min-height: 44px;
+}
+
+.input:invalid,
+.input.invalid {
+    border-color: rgba(239, 68, 68, 0.95);
+}
+
+.neo-hint {
+    margin-top: 8px;
+    opacity: 0.75;
+    font-size: 13px;
 }
 
 body.dark-theme .input {
     background: rgba(255, 255, 255, 0.92);
 }
 
+.neo-fieldset {
+    border: 1px solid var(--border-color);
+    border-radius: var(--neo-radius);
+    padding: 12px;
+    margin: 10px 0 0 0;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.neo-fieldset-legend {
+    padding: 0 8px;
+    opacity: 0.8;
+    font-size: 13px;
+}
+
+.neo-fieldset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: end;
+}
+
+@media (max-width: 820px) {
+    .neo-fieldset-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.neo-route-config {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: var(--neo-radius);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.neo-toast-host {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: grid;
+    gap: 10px;
+    width: min(560px, calc(100vw - 24px));
+    pointer-events: none;
+}
+
+.neo-toast {
+    pointer-events: auto;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--background-color-2) 85%, black 15%);
+    color: var(--foreground-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.neo-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.neo-toast .neo-toast-text {
+    text-align: left;
+}
+
+.neo-toast .neo-toast-close {
+    appearance: none;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--foreground-color);
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.neo-toast--ok {
+    border-color: rgba(76, 154, 255, 0.6);
+}
+
+.neo-toast--warn {
+    border-color: #f5a524;
+}
+
+.neo-toast--error {
+    border-color: #ef4444;
+}
+
+.neo-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    animation: neo-spin 0.8s linear infinite;
+}
+
+body:not(.dark-theme) .neo-spinner {
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    border-top-color: rgba(0, 0, 0, 0.75);
+}
+
+@keyframes neo-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .neo-pill {
     display: inline-flex;
     gap: 6px;
     align-items: center;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border-radius: 999px;
     border: 1px solid var(--border-color);
     background: rgba(255, 255, 255, 0.04);
+    font-size: var(--neo-font-size);
+}
+
+.neo-pill.ok {
+    border-color: rgba(76, 154, 255, 0.6);
+}
+
+.neo-pill.warn {
+    border-color: #f5a524;
+    color: #f5a524;
+}
+
+.neo-pill.error {
+    border-color: #ef4444;
+    color: #ef4444;
 }
 
 .neo-canvas {
@@ -194,10 +506,22 @@ details.neo-details > summary::-webkit-details-marker {
     gap: 10px;
     align-items: center;
     justify-content: space-between;
+    min-height: 44px;
+}
+
+.neo-inline-details > summary.neo-summary {
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.neo-inline-details[open] > summary.neo-summary {
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .neo-summary-title {
-    font-size: 18px;
+    font-size: 20px;
 }
 
 .neo-kbd {
@@ -206,4 +530,51 @@ details.neo-details > summary::-webkit-details-marker {
     border-bottom-width: 2px;
     padding: 2px 6px;
     border-radius: 6px;
+    font-size: 13px;
+}
+
+@media (pointer: coarse) {
+    .neo-kbd {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .neo-workout-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .neo-workout-controls > label,
+    .neo-workout-controls > button,
+    .neo-workout-controls > .button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    label > .input,
+    label > select.input {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 6px;
+        display: block;
+    }
+}
+
+.neo-skip-link {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    z-index: 2000;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--background-color-2) 85%, black 15%);
+    color: var(--foreground-color);
+    transform: translateY(-140%);
+    transition: transform 120ms ease;
+}
+
+.neo-skip-link:focus {
+    transform: translateY(0);
 }

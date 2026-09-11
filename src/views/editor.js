@@ -586,10 +586,10 @@ class WorkoutEditor extends HTMLElement {
         this.$author.addEventListener(`input`, this.onAuthor.bind(this), this.signal);
         this.$category.addEventListener(`input`, this.onCategory.bind(this), this.signal);
         this.$description.addEventListener(`input`, this.onDescription.bind(this), this.signal);
-        this.$add.addEventListener(`pointerup`, this.onAdd.bind(this), this.signal);
-        this.$remove.addEventListener(`pointerup`, this.onRemove.bind(this), this.signal);
-        this.$save.addEventListener(`pointerup`, this.onSave.bind(this), this.signal);
-        this.$download.addEventListener(`pointerup`, this.onDownload.bind(this), this.signal);
+        this.$add.addEventListener(`click`, this.onAdd.bind(this), this.signal);
+        this.$remove.addEventListener(`click`, this.onRemove.bind(this), this.signal);
+        this.$save.addEventListener(`click`, this.onSave.bind(this), this.signal);
+        this.$download.addEventListener(`click`, this.onDownload.bind(this), this.signal);
 
         this.$name.value = this.editor.getName();
         this.$author.value = this.editor.getAuthor();
@@ -695,4 +695,3 @@ class WorkoutEditor extends HTMLElement {
 customElements.define('workout-editor', WorkoutEditor);
 
 export { Editor };
-
