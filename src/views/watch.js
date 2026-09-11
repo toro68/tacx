@@ -31,13 +31,13 @@ class Watch extends HTMLElement {
             return;
         }
 
-        this.dom.start.addEventListener('pointerup', this.onStart, this.signal);
-        this.dom.pause.addEventListener('pointerup', this.onPause, this.signal);
-        this.dom.back.addEventListener('pointerup', this.onBack, this.signal);
-        this.dom.lap.addEventListener('pointerup', this.onLap, this.signal);
-        this.dom.stop.addEventListener('pointerup', this.onStop, this.signal);
+        this.dom.start.addEventListener('click', this.onStart, this.signal);
+        this.dom.pause.addEventListener('click', this.onPause, this.signal);
+        this.dom.back.addEventListener('click', this.onBack, this.signal);
+        this.dom.lap.addEventListener('click', this.onLap, this.signal);
+        this.dom.stop.addEventListener('click', this.onStop, this.signal);
         // this.dom.workout.addEventListener('pointerup', this.onWorkoutStart);
-        this.dom.save.addEventListener(`pointerup`, this.onSave, this.signal);
+        this.dom.save.addEventListener(`click`, this.onSave, this.signal);
 
         this.renderInit(this.dom);
 

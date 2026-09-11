@@ -9,7 +9,12 @@ class TabBtn extends HTMLElement {
         this.effect = this.getAttribute('effect') || '';
         this.param = this.getAttribute('param') || '';
         this.prop = this.getAttribute('prop') || false;
-        this.addEventListener('pointerup', this.onEffect.bind(this));
+        if(!this.hasAttribute('tabindex')) this.setAttribute('tabindex', '0');
+        if(!this.hasAttribute('role')) this.setAttribute('role', 'button');
+        this._onEffect = this.onEffect.bind(this);
+        this._onKeyDown = this.onKeyDown.bind(this);
+        this.addEventListener('click', this._onEffect);
+        this.addEventListener('keydown', this._onKeyDown);
 
         if(this.prop) {
             xf.sub(`db:${this.prop}`, this.onUpdate.bind(this));
@@ -17,10 +22,17 @@ class TabBtn extends HTMLElement {
         }
     }
     disconnectedCallback() {
-        this.removeEventListener('pointerup', this.onEffect);
+        this.removeEventListener('click', this._onEffect);
+        this.removeEventListener('keydown', this._onKeyDown);
     }
     onEffect(e) {
         xf.dispatch(`ui:${this.effect}`, this.param);
+    }
+    onKeyDown(e) {
+        if(e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.onEffect(e);
+        }
     }
     onUpdate(state) {
         this.state = state;

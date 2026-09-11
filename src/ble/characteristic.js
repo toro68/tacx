@@ -1,4 +1,4 @@
-import { exists, arrayBufferToArray, wait, time, print, } from '../functions.js';
+import { exists, arrayBufferToArray, wait, print, } from '../functions.js';
 import { webBle } from './web-ble.js';
 
 function Characteristic(args = {}) {
@@ -16,8 +16,8 @@ function Characteristic(args = {}) {
 
     // Function
     // some browsers don't have writeValueWithResponse,
-    // but writeValue is depricated, so try the first or fallback to last.
-    const writterFn = exists(_characteristic.writeValueWithResponse) ?
+    // but writeValue is deprecated, so try the first or fall back to the last.
+    const writerFn = exists(_characteristic.writeValueWithResponse) ?
           'writeValueWithResponse' :
           'writeValue';
 
@@ -39,6 +39,9 @@ function Characteristic(args = {}) {
 
     let abortController;
     let signal;
+
+    // Promise chain to serialize writes; prevents "GATT operation already in progress".
+    let _writeChain = Promise.resolve();
 
     // end private state
     // end state
@@ -81,7 +84,7 @@ function Characteristic(args = {}) {
             if(attempts > 0) {
                 await wait(txRate);
                 print.log(`tx: startNotificationsWithRetry: fail: 'trying again'`);
-                return await startNotificationsWithRetry(handler, attempts-1);
+                return await startNotificationsWithRetry(handler, attempts-1, txRate);
             } else {
                 print.log(`tx: startNotificationsWithRetry: fail: 'give up'`);
                 return false;
@@ -116,16 +119,34 @@ function Characteristic(args = {}) {
         }
     }
 
-    // DataView -> Bool
-    async function write(value) {
-        let res;
-        try{
-            res = await _characteristic[writterFn](value);
-            return true;
-        } catch(e) {
-            print.warn(`tx: characteristic: failed: write: on: ${name} uuid: ${uuid} value: [${arrayBufferToArray(value)}]`, e);
+    function normalizeWriteValue(value) {
+        // Web Bluetooth expects BufferSource (ArrayBuffer | ArrayBufferView).
+        if(!exists(value)) return null;
+        if(value instanceof ArrayBuffer) return value;
+        if(ArrayBuffer.isView(value)) return value;
+        return null;
+    }
+
+    async function doWrite(value) {
+        const normalized = normalizeWriteValue(value);
+        if(!normalized) {
+            print.warn(`tx: characteristic: failed: write: on: ${name} uuid: ${uuid}`, new Error('write() value must be a BufferSource'));
             return false;
         }
+        try{
+            await _characteristic[writerFn](normalized);
+            return true;
+        } catch(e) {
+            print.warn(`tx: characteristic: failed: write: on: ${name} uuid: ${uuid} value: [${arrayBufferToArray(normalized)}]`, e);
+            return false;
+        }
+    }
+
+    // DataView -> Bool
+    async function write(value) {
+        const operation = _writeChain.then(() => doWrite(value));
+        _writeChain = operation.catch(() => {});
+        return await operation;
     }
 
     // Any, Int, Int -> Bool
@@ -138,7 +159,7 @@ function Characteristic(args = {}) {
             if(attempts > 0) {
                 print.log(`tx: characteristic: writeWithRetry: fail: continue:`);
                 await wait(txRate);
-                return await writeWithRetry(value, attempts-1);
+                return await writeWithRetry(value, attempts-1, txRate);
             } else {
                 print.log(`tx: characteristic: writeWithRetry: fail: break:`);
                 return false;
@@ -148,6 +169,7 @@ function Characteristic(args = {}) {
 
     // Void -> Void
     function block() {
+        clearTimeout(_responseTimeoutId);
         _responseTimeoutId = setTimeout(release, responseTimeout);
         _ready = false;
     }
@@ -174,4 +196,3 @@ function Characteristic(args = {}) {
 }
 
 export { Characteristic };
-

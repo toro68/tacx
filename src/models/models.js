@@ -9,7 +9,7 @@ import { idb } from '../storage/idb.js';
 import { uuid } from '../storage/uuid.js';
 
 import API from './api.js';
-import { workouts as workoutsFile }  from '../workouts/workouts.js';
+import { parsedWorkouts } from '../workouts/workouts.js';
 import { zwo } from '../workouts/zwo.js';
 import { fileHandler } from '../file.js';
 import { Model as Cycling } from '../physics.js';
@@ -17,6 +17,10 @@ import { fit } from '../fit/fit.js';
 
 import { Device, Status, ControlMode, } from '../ble/enums.js';
 import { TimerStatus, EventType, } from '../activity/enums.js';
+
+const cloneWorkout = (workout) => JSON.parse(JSON.stringify(workout));
+const buildDefaultWorkouts = () => parsedWorkouts.map((workout) => Object.assign(cloneWorkout(workout), {id: uuid()}));
+const defaultWorkout = () => cloneWorkout(first(parsedWorkouts));
 
 class Model {
     constructor(args = {}) {
@@ -672,7 +676,7 @@ class Workout extends Model {
         self.api = args.api;
     }
     // state init
-    defaultValue() { return this.parse((first(workoutsFile))); }
+    defaultValue() { return defaultWorkout(); }
     defaultIsValid(value) {
         return exists(value);
     }
@@ -758,8 +762,7 @@ class Workouts extends Model {
         self.workoutModel = args.workoutModel;
     }
     defaultValue() {
-        const self = this;
-        return workoutsFile.map((w) => Object.assign(self.workoutModel.parse(w), {id: uuid()}));
+        return buildDefaultWorkouts();
     }
     defaultIsValid(value) {
         const self = this;
@@ -770,9 +773,9 @@ class Workouts extends Model {
         const workouts = await idb.getAll(`${self.name}`) ?? [];
 
         if(empty(workouts)) {
-            return self.default;
+            return buildDefaultWorkouts();
         } else {
-            return self.default.concat(workouts);
+            return buildDefaultWorkouts().concat(workouts);
         }
     }
     get(workouts, id) {

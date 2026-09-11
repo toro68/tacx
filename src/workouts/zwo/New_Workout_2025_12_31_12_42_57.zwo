@@ -1,0 +1,42 @@
+<workout_file>
+    <author>-</author>
+    <name>Day 3 - Foundation</name>
+    <description>Foundation training: Relatively low intensity ride with goal of spending a large proportion of the ride into Endurance Zone 2.</description>
+    <sportType>bike</sportType>
+    <tags>
+    </tags>
+    <workout>
+        <Warmup Duration="600" PowerLow="0.5" PowerHigh="0.55"/>
+        <SteadyState Duration="300" Power="0.73">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="120" Power="0.52">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="300" Power="0.73">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="120" Power="0.52">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="300" Power="0.73">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="120" Power="0.52">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="300" Power="0.73">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="120" Power="0.52">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="300" Power="0.73">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="120" Power="0.52">
+            <textevent timeoffset="0" message="90-100 RPM CADENCE!"/>
+        </SteadyState>
+        <Cooldown Duration="300" PowerLow="0.55" PowerHigh="0.5"/>
+    </workout>
+</workout_file>

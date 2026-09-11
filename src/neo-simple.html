@@ -11,20 +11,25 @@
     </head>
 
     <body id="theme" class="dark-theme">
-        <div class="wrapper neo-container">
+        <a class="neo-skip-link" href="#main">Skip to main content</a>
+        <div id="main" class="wrapper neo-container">
             <h1 class="neo-title">NEO Simple</h1>
             <p class="neo-subtitle">
                 Minimal “Zwift-ish” PWA: intervals (ERG) + simple hills (SIM) via Web Bluetooth.
             </p>
 
             <div class="neo-stack">
-                <div class="neo-sticky">
-                    <div class="neo-row">
-                        <button id="btn-connect" class="button primary" type="button">Connect / Disconnect</button>
-                        <span class="neo-pill">Device: <strong id="device-name">--</strong></span>
-                        <span class="neo-pill">Status: <strong id="status">disconnected</strong></span>
-                        <button id="btn-fullscreen" class="button" type="button" style="margin-left: auto;">Fullscreen</button>
-                    </div>
+            <div id="screen-setup" class="neo-screen">
+                <div id="setup-sticky-slot">
+                <div class="neo-sticky" id="neo-sticky">
+	                    <div class="neo-row">
+	                        <button id="btn-connect" class="button primary" type="button" aria-label="Connect or disconnect trainer"><span id="connect-label">Connect</span></button>
+	                        <span class="neo-pill neo-pill-device">Device: <strong id="device-name">--</strong></span>
+	                        <span class="neo-pill neo-pill-status">Status: <strong id="status" role="status" aria-live="polite" aria-atomic="true">disconnected</strong></span>
+	                        <span class="neo-pill ok" id="trainer-msg" role="status" aria-live="polite" aria-atomic="true">Trainer: ready</span>
+	                        <button id="btn-ride-settings" class="button" type="button" aria-label="Toggle ride settings" style="margin-left: auto;">Settings</button>
+	                        <button id="btn-fullscreen" class="button" type="button" aria-label="Toggle fullscreen">Fullscreen</button>
+	                    </div>
 
                     <div class="neo-grid-2" style="margin-top: 12px;">
                         <div class="data-tile">
@@ -35,187 +40,264 @@
                                 <span class="neo-muted">Speed <strong><span id="speed">--</span> km/h</strong></span>
                                 <span class="neo-muted">HR <strong><span id="hr">--</span> bpm</strong></span>
                             </div>
-                            <div class="neo-muted" style="margin-top: 10px;">
-                                Distance: <strong><span id="distance">0.00</span> km</strong>
-                                &nbsp;·&nbsp; Grade: <strong><span id="grade">0.0</span>%</strong>
-                                &nbsp;·&nbsp; Target: <strong><span id="target">--</span></strong>
-                                &nbsp;·&nbsp; W/kg: <strong><span id="wkg">--</span></strong>
-                            </div>
+	                            <div class="neo-muted" style="margin-top: 10px;">
+	                                Distance: <strong><span id="distance">0.00</span> km</strong>
+	                                &nbsp;·&nbsp; Grade: <strong><span id="grade">0.0</span>%</strong>
+	                                &nbsp;·&nbsp; Target: <strong><span id="target">--</span></strong>
+	                                &nbsp;·&nbsp; Control: <strong><span id="control-source">--</span></strong>
+	                                &nbsp;·&nbsp; W/kg: <strong><span id="wkg">--</span></strong>
+	                            </div>
                         </div>
 
                         <div class="data-tile">
                             <div class="neo-row">
                                 <h2 class="neo-summary-title">Mode</h2>
                                 <label class="neo-row" style="gap: 8px;">
-                                    <input type="radio" name="mode" value="workout" checked />
+                                    <input type="radio" name="mode" value="workout" checked aria-label="Workout mode (ERG)" aria-describedby="hint-mode" />
                                     Workout (ERG)
                                 </label>
                                 <label class="neo-row" style="gap: 8px;">
-                                    <input type="radio" name="mode" value="sim" />
+                                    <input type="radio" name="mode" value="sim" aria-label="Hills mode (SIM)" aria-describedby="hint-mode" />
                                     Hills (SIM)
                                 </label>
-                                <button id="btn-reset" class="button" type="button" style="margin-left: auto;">Trainer Reset</button>
+                                <button id="btn-reset" class="button" type="button" aria-label="Reset trainer control" style="margin-left: auto;">Trainer Reset</button>
                             </div>
                             <div class="neo-muted" style="margin-top: 10px;">
                                 Tip: Use Chrome/Edge/Brave. Close other trainer apps to avoid control clashes.
                             </div>
+                            <div id="hint-mode" class="neo-hint">ERG controls target power. SIM controls grade/terrain.</div>
                         </div>
                     </div>
 
                     <div class="data-tile" style="margin-top: 12px;">
                         <h2 class="neo-summary-title" style="margin-bottom: 10px;">Workout</h2>
-                        <div class="neo-row">
+                        <div class="neo-row neo-workout-controls">
                             <label>
-                                FTP
-                                <input id="ftp" class="input" type="number" inputmode="numeric" min="50" step="1" value="250" style="width: 110px; margin-left: 8px;" />
+                                FTP (W)
+                                <input id="ftp" class="input" type="number" inputmode="numeric" min="50" max="2000" step="1" value="250" aria-describedby="hint-ftp" style="width: 110px; margin-left: 8px;" />
                             </label>
                             <label>
                                 Workout
                                 <select id="workout" class="input" style="margin-left: 8px;"></select>
                             </label>
-                            <label class="button" style="display: inline-flex; gap: 8px; align-items: center; cursor: pointer;">
-                                Load .zwo
+                            <label id="btn-workout-load" class="button" role="button" tabindex="0" aria-label="Load workout file (.zwo)" style="display: inline-flex; gap: 8px; align-items: center; cursor: pointer;">
+                                <span id="workout-load-label">Load .zwo</span>
                                 <input id="workout-file" type="file" accept=".zwo" style="display: none;" />
                             </label>
-                            <button id="btn-workout-start" class="button primary" type="button">Start</button>
-                            <button id="btn-workout-pause" class="button" type="button">Pause</button>
-                            <button id="btn-workout-next" class="button" type="button">Next</button>
-                            <button id="btn-workout-stop" class="button" type="button">Stop</button>
+                            <button id="btn-workout-start" class="button primary" type="button" aria-label="Start workout"><span class="neo-icon" aria-hidden="true">▶</span>Start</button>
+                            <button id="btn-workout-pause" class="button" type="button" aria-label="Pause workout"><span class="neo-icon" aria-hidden="true">⏸</span>Pause</button>
+                            <button id="btn-workout-next" class="button" type="button" aria-label="Skip to next step"><span class="neo-icon" aria-hidden="true">⏭</span>Next</button>
+                            <button id="btn-workout-stop" class="button danger" type="button" aria-label="Stop workout"><span class="neo-icon" aria-hidden="true">⏹</span>Stop</button>
                         </div>
                         <div style="margin-top: 10px;">
                             <div style="height: 10px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
                                 <div id="workout-progress" style="height: 10px; width: 0%; background: #4C9AFF;"></div>
                             </div>
                         </div>
-                        <div style="margin-top: 10px;">
-                            <canvas id="workout-timeline" width="860" height="110" class="neo-canvas" style="height: 110px;"></canvas>
-                        </div>
-                        <div class="neo-row neo-muted" style="margin-top: 10px; gap: 14px;">
+                        <div class="neo-row neo-muted" style="margin-top: 10px; gap: 14px; align-items: center;">
                             <div>Step: <strong id="workout-step">--</strong></div>
-                            <div>Idx: <strong id="workout-step-idx">--</strong></div>
-                            <div>Now: <strong id="workout-now">--</strong></div>
-                            <div>Next: <strong id="workout-next">--</strong></div>
                             <div>Remaining: <strong id="workout-remaining">--</strong></div>
                             <div>Elapsed: <strong id="workout-elapsed">--</strong></div>
-                            <label class="neo-row" style="gap: 8px;">
-                                <input id="workout-sound" type="checkbox" checked />
-                                Sound cues
-                            </label>
-                            <div class="neo-muted" style="margin-left: auto;">
-                                <span class="neo-kbd">Space</span> pause
-                                &nbsp;·&nbsp;
-                                <span class="neo-kbd">N</span> next
-                                &nbsp;·&nbsp;
-                                <span class="neo-kbd">S</span> start
-                                &nbsp;·&nbsp;
-                                <span class="neo-kbd">H</span> hills
-                                &nbsp;·&nbsp;
-                                <span class="neo-kbd">Esc</span> stop
+                            <span class="neo-muted" style="margin-left: auto;">Open <strong>Settings</strong> below for sound + details.</span>
+                    </div>
+                    <div class="neo-load-adjust">
+                        <div class="neo-erg-adjust">
+                            <label for="intensity-slider">Workout load · <strong id="intensity-live">100%</strong></label>
+                            <div class="neo-load-controls">
+                                <button id="btn-intensity-down" class="button" type="button" aria-label="Easier: decrease workout load by 1 percentage point">Easier −1%</button>
+                                <input id="intensity-slider" type="range" min="0" max="200" step="1" value="100" aria-describedby="load-target hint-ftp" />
+                                <button id="btn-intensity-up" class="button" type="button" aria-label="Harder: increase workout load by 1 percentage point">Harder +1%</button>
                             </div>
+                            <div id="hint-ftp" class="neo-hint">Set your own FTP before starting. Adjust the load here during the workout; your choice is saved.</div>
                         </div>
+                        <div class="neo-sim-adjust">
+                            <label for="difficulty-slider">Hill strength · <strong id="difficulty-live">100%</strong></label>
+                            <div class="neo-load-controls">
+                                <button id="btn-difficulty-down" class="button" type="button" aria-label="Reduce hill strength by 1 percentage point">−1%</button>
+                                <input id="difficulty-slider" type="range" min="0" max="200" step="1" value="100" aria-describedby="load-target hint-difficulty" />
+                                <button id="btn-difficulty-up" class="button" type="button" aria-label="Increase hill strength by 1 percentage point">+1%</button>
+                            </div>
+                            <div id="hint-difficulty" class="neo-hint">Lower this to soften the hills. 50% turns a 6% hill into 3% on the trainer. On flat roads, use your gears or manual grade.</div>
+                        </div>
+                        <div id="load-target" class="neo-hint" role="status">Start a workout to set target power.</div>
                     </div>
                 </div>
+            </div>
+                </div>
+            </div>
 
-                <details id="builder-details" class="data-tile neo-details">
+            <div id="setup-visual-slot">
+                <details id="workout-visual" class="data-tile neo-details">
                     <summary class="neo-summary">
-                        <span class="neo-summary-title">Workout Builder</span>
-                        <span class="neo-muted">Create and export .zwo</span>
+                        <span class="neo-summary-title">Workout Timeline</span>
+                        <span class="neo-muted">Preview</span>
                     </summary>
                     <div style="margin-top: 10px;">
-                        <div class="neo-row">
-                            <label>
-                                Name
-                                <input id="builder-name" class="input" type="text" value="My workout" style="width: 220px; margin-left: 8px;" />
-                            </label>
-                            <button id="builder-add-erg" class="button" type="button">+ ERG step</button>
-                            <button id="builder-add-sim" class="button" type="button">+ SIM step</button>
-                            <button id="builder-clear" class="button" type="button">Clear</button>
-                            <button id="builder-export" class="button" type="button">Export .zwo</button>
-                            <button id="builder-load" class="button" type="button">Load into player</button>
-                            <div class="neo-muted" style="margin-left: auto;">Total: <strong id="builder-total">0:00</strong></div>
-                        </div>
-
-                        <div class="neo-muted" style="margin-top: 10px;">
-                            Steps are flat intervals. ERG uses %FTP; SIM uses grade %.
-                        </div>
-
-                        <div id="builder-rows" style="margin-top: 10px; display: grid; gap: 8px;"></div>
+                        <canvas id="workout-timeline" width="860" height="110" class="neo-canvas" style="height: 110px;" role="img" aria-label="Workout timeline chart"></canvas>
                     </div>
                 </details>
+            </div>
 
-                <div id="section-hills" class="data-tile">
-                    <h2 class="neo-summary-title" style="margin-bottom: 10px;">Hills (SIM)</h2>
-                    <div class="neo-row">
-                        <label class="neo-row" style="gap: 8px;">
-                            <input id="sim-auto" type="checkbox" checked />
-                            Auto route
-                        </label>
-                        <label>
-                            Manual grade
-                            <input id="sim-grade" class="input" type="number" inputmode="decimal" min="-10" max="20" step="0.1" value="0" style="width: 110px; margin-left: 8px;" />
-                        </label>
-                        <button id="btn-sim-apply" class="button" type="button">Apply</button>
-                        <button id="btn-route-reset" class="button" type="button">Reset Route</button>
-                        <span class="neo-muted" style="margin-left: auto;">Route length: <strong id="route-length">--</strong></span>
-                    </div>
-                    <div style="margin-top: 12px; display: grid; gap: 10px;">
-                        <canvas id="profile" width="860" height="140" class="neo-canvas" style="height: 140px;"></canvas>
-                    </div>
-                </div>
+	            <details id="builder-details" class="data-tile neo-details">
+                    <summary class="neo-summary">
+                        <span class="neo-summary-title">Workout Builder</span>
+                            <span class="neo-muted">Create and export .zwo</span>
+                        </summary>
+                        <div style="margin-top: 10px;">
+                            <div class="neo-row">
+                                <label>
+                                    Name
+                                    <input id="builder-name" class="input" type="text" value="My workout" style="width: 220px; margin-left: 8px;" />
+                                </label>
+                                <button id="builder-add-erg" class="button" type="button">+ ERG step</button>
+                                <button id="builder-add-sim" class="button" type="button">+ SIM step</button>
+                                <button id="builder-clear" class="button" type="button">Clear</button>
+                                <button id="builder-export" class="button" type="button">Export .zwo</button>
+                                <button id="builder-load" class="button" type="button">Load into player</button>
+                                <div class="neo-muted" style="margin-left: auto;">Total: <strong id="builder-total">0:00</strong></div>
+                            </div>
+
+                            <div class="neo-muted" style="margin-top: 10px;">
+                                Steps are flat intervals. ERG uses %FTP; SIM uses grade %.
+                            </div>
+
+                            <div id="builder-rows" style="margin-top: 10px; display: grid; gap: 8px;"></div>
+                        </div>
+                    </details>
+
+	                <div id="section-hills" class="data-tile">
+	                    <h2 class="neo-summary-title" style="margin-bottom: 10px;">Hills (SIM)</h2>
+	                    <div class="neo-row">
+	                        <label class="neo-row" style="gap: 8px;">
+	                            <input id="sim-auto" type="checkbox" checked />
+	                            Auto route
+	                        </label>
+	                        <label>
+	                            Route
+	                            <select id="sim-route" class="input" style="width: 220px; margin-left: 8px;">
+	                                <option value="mini" selected>Mini Hills (built-in)</option>
+	                                <option value="flat">Flat Loop (built-in)</option>
+	                                <option value="rolling">Rolling Hills (built-in)</option>
+	                                <option value="climb">Long Climb (built-in)</option>
+	                                <option value="punchy">Punchy Repeats (built-in)</option>
+	                                <option value="random">Random</option>
+	                                <option value="workout">From selected workout</option>
+	                            </select>
+	                        </label>
+	                        <label>
+	                            Manual grade
+	                            <input id="sim-grade" class="input" type="number" inputmode="decimal" min="-40" max="40" step="0.1" value="0" aria-describedby="hint-grade-range" style="width: 110px; margin-left: 8px;" />
+	                        </label>
+	                        <button id="btn-sim-apply" class="button" type="button">Apply</button>
+	                        <button id="btn-route-generate" class="button" type="button">Apply route</button>
+	                        <button id="btn-route-reset" class="button" type="button">Reset position</button>
+	                        <span class="neo-muted" style="margin-left: auto;">Active: <strong id="route-name">--</strong></span>
+	                        <span class="neo-muted">Length: <strong id="route-length">--</strong></span>
+	                    </div>
+	                    <div id="hint-sim-manual" class="neo-hint"></div>
+	                    <div id="hint-route-reset" class="neo-hint">Reset position sets route progress back to 0.00 km (it does not change the selected route).</div>
+	                    <div id="route-config-random" class="neo-row neo-route-config" hidden>
+	                        <label>
+	                            Seed
+	                            <input id="route-seed" class="input" type="text" value="neo" style="width: 160px; margin-left: 8px;" />
+	                        </label>
+	                        <label>
+	                            Length (km)
+	                            <input id="route-length-km" class="input" type="number" inputmode="decimal" min="1" max="50" step="0.1" value="5.2" style="width: 110px; margin-left: 8px;" />
+	                        </label>
+	                        <label>
+	                            Max grade (%)
+	                            <input id="route-max-grade" class="input" type="number" inputmode="decimal" min="1" max="40" step="1" value="18" style="width: 110px; margin-left: 8px;" />
+	                        </label>
+	                    </div>
+	                    <div id="route-config-workout" class="neo-row neo-route-config" hidden>
+	                        <label>
+	                            Assume speed (km/h)
+	                            <input id="route-assume-kmh" class="input" type="number" inputmode="decimal" min="5" max="60" step="0.5" value="28" style="width: 120px; margin-left: 8px;" />
+	                        </label>
+	                        <div id="hint-workout-route" class="neo-hint">Builds a looping “hills over distance” route from SIM (grade %) steps, converting duration → distance using assumed speed.</div>
+	                    </div>
+	                    <div id="hint-route-apply" class="neo-hint"></div>
+	                    <div id="hint-grade-range" class="neo-hint">Grade range: -40% to +40%.</div>
+	                    <div style="margin-top: 12px; display: grid; gap: 10px;">
+	                        <canvas id="profile" width="860" height="140" class="neo-canvas" style="height: 140px;" role="img" aria-label="Route grade profile chart"></canvas>
+	                    </div>
+	                </div>
 
                 <div id="section-ride" class="data-tile">
                     <h2 class="neo-summary-title" style="margin-bottom: 10px;">Ride Feel</h2>
-                    <div class="neo-row">
-                        <label class="neo-row" style="gap: 8px;">
-                            <input id="virtual-speed" type="checkbox" checked />
-                            Virtual speed
-                        </label>
-                        <label>
-                            Weight (kg)
-                            <input id="weight" class="input" type="number" inputmode="decimal" min="40" max="140" step="0.1" value="80" style="width: 110px; margin-left: 8px;" />
-                        </label>
-                        <label>
-                            Resistance (%)
-                            <input id="difficulty" class="input" type="number" inputmode="numeric" min="0" max="200" step="1" value="100" style="width: 90px; margin-left: 8px;" />
-                        </label>
-                        <label class="neo-row" style="gap: 8px;">
-                            <input id="ghost-enabled" type="checkbox" />
-                            Race yourself
-                        </label>
-                        <label class="neo-row" style="gap: 8px;">
-                            <input id="ghost-auto-save" type="checkbox" checked />
-                            Auto-save
-                        </label>
-                        <label>
-                            Ghost
-                            <select id="ghost-select" class="input" style="width: 180px; margin-left: 8px;"></select>
-                        </label>
-                        <label>
-                            Name
-                            <input id="ghost-name" class="input" type="text" value="" style="width: 160px; margin-left: 8px;" />
-                        </label>
-                        <button id="btn-ghost-save-name" class="button" type="button">Save name</button>
-                        <button id="btn-ghost-delete" class="button" type="button">Delete</button>
-                        <label class="neo-row" style="gap: 8px; margin-left: auto;">
-                            <input id="gfx-enhanced" type="checkbox" checked />
-                            Enhanced graphics
-                        </label>
-                        <label class="neo-row" style="gap: 8px;">
-                            <input id="gfx-leaderboard" type="checkbox" checked />
-                            Leaderboard
-                        </label>
-                        <label>
-                            Crowd
-                            <select id="gfx-crowd" class="input" style="width: 120px; margin-left: 8px;">
-                                <option value="off">off</option>
-                                <option value="few">few</option>
-                                <option value="many" selected>many</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div style="margin-top: 12px;">
-                        <canvas id="ride" width="860" height="260" class="neo-canvas" style="height: 260px;"></canvas>
-                    </div>
+                    <fieldset class="neo-fieldset">
+                        <legend class="neo-fieldset-legend">Rider</legend>
+                        <div class="neo-fieldset-grid">
+                            <label class="neo-row" style="gap: 8px;">
+                                <input id="virtual-speed" type="checkbox" checked />
+                                Virtual speed
+                            </label>
+                            <label>
+                                Weight (kg)
+                                <input id="weight" class="input" type="number" inputmode="decimal" min="40" max="140" step="0.1" value="80" style="width: 110px; margin-left: 8px;" />
+                            </label>
+                            <label>
+                                Hill strength (%)
+                                <input id="difficulty" class="input" type="number" inputmode="numeric" min="0" max="200" step="1" value="100" style="width: 90px; margin-left: 8px;" />
+                            </label>
+                            <label>
+                                Workout load (%)
+                                <input id="intensity" class="input" type="number" inputmode="numeric" min="0" max="200" step="1" value="100" aria-describedby="hint-intensity-range" style="width: 90px; margin-left: 8px;" />
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="neo-fieldset">
+                        <legend class="neo-fieldset-legend">Ghost Racing</legend>
+                        <div class="neo-fieldset-grid">
+                            <label class="neo-row" style="gap: 8px;">
+                                <input id="ghost-enabled" type="checkbox" />
+                                Race yourself
+                            </label>
+                            <label class="neo-row" style="gap: 8px;">
+                                <input id="ghost-auto-save" type="checkbox" checked />
+                                Auto-save
+                            </label>
+                            <label>
+                                Ghost
+                                <select id="ghost-select" class="input" style="width: 180px; margin-left: 8px;"></select>
+                            </label>
+                            <label>
+                                Name
+                                <input id="ghost-name" class="input" type="text" value="" style="width: 160px; margin-left: 8px;" />
+                            </label>
+                            <div class="neo-row" style="gap: 10px;">
+                                <button id="btn-ghost-save-name" class="button" type="button">Save name</button>
+                                <button id="btn-ghost-delete" class="button danger" type="button">Delete</button>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="neo-fieldset">
+                        <legend class="neo-fieldset-legend">Graphics</legend>
+                        <div class="neo-fieldset-grid">
+                            <label class="neo-row" style="gap: 8px;">
+                                <input id="gfx-enhanced" type="checkbox" checked />
+                                Detailed scenery
+                            </label>
+                            <label class="neo-row" style="gap: 8px;">
+                                <input id="gfx-leaderboard" type="checkbox" checked />
+                                Nearby riders
+                            </label>
+                            <label>
+                                Other cyclists
+                                <select id="gfx-crowd" class="input" style="width: 120px; margin-left: 8px;">
+                                    <option value="off">off</option>
+                                    <option value="few">few</option>
+                                    <option value="many" selected>many</option>
+                                </select>
+                            </label>
+                        </div>
+                    </fieldset>
+	                    <div id="setup-ride-visual-slot" style="margin-top: 12px;">
+	                        <canvas id="ride" width="1280" height="640" class="neo-canvas" role="img" aria-label="Cycling view with road perspective, terrain and nearby riders"></canvas>
+	                    </div>
 
                     <details id="physics-details" class="neo-details" style="margin-top: 10px;">
                         <summary class="neo-summary">
@@ -232,14 +314,65 @@
                                 <input id="crr" class="input" type="number" inputmode="decimal" min="0.001" max="0.020" step="0.001" value="0.005" style="width: 110px; margin-left: 8px;" />
                             </label>
                             <label>
-                                Wind (m/s)
-                                <input id="wind" class="input" type="number" inputmode="decimal" min="-10" max="10" step="0.5" value="0" style="width: 110px; margin-left: 8px;" />
-                            </label>
-                        </div>
-                    </details>
-                </div>
+                            Wind (m/s)
+                            <input id="wind" class="input" type="number" inputmode="decimal" min="-20" max="20" step="0.5" value="0" aria-describedby="hint-wind-range" style="width: 110px; margin-left: 8px;" />
+                        </label>
+                    </div>
+                    <div class="neo-hint">
+                        <span id="hint-wind-range">Wind range: -20 to +20 m/s.</span>
+                        &nbsp;·&nbsp;
+                        <span id="hint-intensity-range">Intensity/difficulty: 0% to 200%.</span>
+                    </div>
+                </details>
             </div>
-        </div>
+            </div>
+
+            <div id="screen-ride" class="neo-screen">
+                <div id="ride-sticky-slot"></div>
+                <div id="ride-visual-slot"></div>
+	                <details id="ride-settings" class="data-tile neo-details">
+	                    <summary class="neo-summary">
+	                        <span class="neo-summary-title">Settings</span>
+	                        <span class="neo-muted">Quick adjust · sound · shortcuts</span>
+	                    </summary>
+	                    <div class="neo-row" style="margin-top: 10px; gap: 14px; align-items: center;">
+	                        <div>Control: <strong id="ride-control-source">--</strong></div>
+	                        <div class="neo-row neo-erg-adjust" style="gap: 8px;">
+	                            <span class="neo-muted">Workout load</span>
+	                            <button id="btn-ride-intensity-down" class="button neo-button-compact" type="button" aria-label="Decrease workout intensity by 5%">-5%</button>
+	                            <strong id="ride-intensity-live">--</strong>
+	                            <button id="btn-ride-intensity-up" class="button neo-button-compact" type="button" aria-label="Increase workout intensity by 5%">+5%</button>
+	                        </div>
+	                        <div class="neo-row neo-sim-adjust" style="gap: 8px;">
+	                            <span class="neo-muted">Hill strength</span>
+	                            <button id="btn-ride-difficulty-down" class="button neo-button-compact" type="button" aria-label="Decrease trainer difficulty by 5%">-5%</button>
+	                            <strong id="ride-difficulty-live">--</strong>
+	                            <button id="btn-ride-difficulty-up" class="button neo-button-compact" type="button" aria-label="Increase trainer difficulty by 5%">+5%</button>
+	                        </div>
+	                        <label class="neo-row" style="gap: 8px;">
+	                            <input id="workout-sound" type="checkbox" checked />
+	                            Sound cues
+	                        </label>
+                        <div>Idx: <strong id="workout-step-idx">--</strong></div>
+                        <div>Now: <strong id="workout-now">--</strong></div>
+                        <div>Next: <strong id="workout-next">--</strong></div>
+                        <div class="neo-muted" style="margin-left: auto;">
+                            <span class="neo-kbd">Space</span> pause
+                            &nbsp;·&nbsp;
+                            <span class="neo-kbd">N</span> next
+                            &nbsp;·&nbsp;
+                            <span class="neo-kbd">S</span> start
+                            &nbsp;·&nbsp;
+                            <span class="neo-kbd">H</span> hills
+                            &nbsp;·&nbsp;
+                            <span class="neo-kbd">Esc</span> stop
+                        </div>
+                    </div>
+                </details>
+            </div>
+            </div>
+
+        <div id="toast-host" class="neo-toast-host" aria-live="polite" aria-atomic="true"></div>
 
         <script type="module" src="./neo-simple.js"></script>
     </body>

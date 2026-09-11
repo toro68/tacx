@@ -29,7 +29,19 @@ class ConnectionSwitch extends HTMLElement {
 
         this.$indicator = this.querySelector(`.${this.indicatorClass}`) ?? this;
 
-        this.addEventListener('pointerup', this.onEffect.bind(this), this.signal);
+        if(!this.hasAttribute('tabindex')) this.setAttribute('tabindex', '0');
+        if(!this.hasAttribute('role')) this.setAttribute('role', 'switch');
+        if(!this.hasAttribute('aria-checked')) this.setAttribute('aria-checked', 'false');
+
+        this.labelText =
+            (this.getAttribute('aria-label') ||
+             this.querySelector('.connection-switch--label')?.textContent ||
+             '').trim();
+
+        this.$srStatus = document.querySelector('#sr-status');
+
+        this.addEventListener('click', this.onEffect.bind(this), this.signal);
+        this.addEventListener('keydown', this.onKeyDown.bind(this), this.signal);
         xf.sub(`${this.for}:connected`,    this.on.bind(this), this.signal);
         xf.sub(`${this.for}:disconnected`, this.off.bind(this), this.signal);
         xf.sub(`${this.for}:connecting`,   this.loading.bind(this), this.signal);
@@ -52,23 +64,42 @@ class ConnectionSwitch extends HTMLElement {
     onEffect(e) {
         xf.dispatch(`ui:${this.for}:switch`);
     }
+    onKeyDown(e) {
+        if(e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.onEffect(e);
+        }
+    }
     on(e) {
         this.$indicator.classList.remove(this.loadingClass);
         this.$indicator.classList.remove(this.offClass);
         this.$indicator.classList.add(this.onClass);
         this.status = 'on';
+        this.setAttribute('aria-checked', 'true');
+        this.removeAttribute('aria-busy');
+        this.announceStatus('connected');
     }
     off(e) {
         this.$indicator.classList.remove(this.loadingClass);
         this.$indicator.classList.remove(this.onClass);
         this.$indicator.classList.add(this.offClass);
         this.status = 'off';
+        this.setAttribute('aria-checked', 'false');
+        this.removeAttribute('aria-busy');
+        this.announceStatus('disconnected');
     }
     loading(e) {
         this.$indicator.classList.remove(this.offClass);
         this.$indicator.classList.remove(this.onClass);
         this.$indicator.classList.add(this.loadingClass);
         this.status = 'loading';
+        this.setAttribute('aria-busy', 'true');
+        this.announceStatus('connecting');
+    }
+
+    announceStatus(state) {
+        if(!this.$srStatus || !this.labelText) return;
+        this.$srStatus.textContent = `${this.labelText} ${state}`;
     }
 }
 

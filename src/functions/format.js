@@ -26,6 +26,16 @@ function dataviewToString(dataview) {
 }
 
 function arrayBufferToArray(buffer) {
+    if(!buffer) return [];
+    // ArrayBuffer
+    if(buffer instanceof ArrayBuffer) {
+        return Array.from(new Uint8Array(buffer));
+    }
+    // ArrayBufferView (TypedArray, DataView)
+    if(ArrayBuffer.isView(buffer)) {
+        return Array.from(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength));
+    }
+    // Fallback for array-like inputs
     return Array.from(new Uint8Array(buffer));
 }
 
@@ -65,4 +75,3 @@ export {
     time,
     formatDate,
 };
-

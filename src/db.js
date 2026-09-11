@@ -215,17 +215,22 @@ xf.reg('ui:page-set', (page, db) => {
 
 // Modes
 xf.reg('ui:mode-set', (mode, db) => {
-    if(db.lock) return;
+    console.log(`:db :ui:mode-set mode=${mode} lock=${db.lock}`);
+    if(db.lock && db.workoutStatus !== 'started') return;
 
     db.mode = models.mode.set(mode);
+    console.log(`:db :ui:mode-set db.mode set to ${db.mode}`);
 
     if(equals(mode, ControlMode.erg)) {
+        console.log(`:db :ui:mode-set dispatching ui:power-target-set ${db.powerTarget}`);
         xf.dispatch(`ui:power-target-set`, db.powerTarget);
     }
     if(equals(mode, ControlMode.resistance)) {
+        console.log(`:db :ui:mode-set dispatching ui:resistance-target-set ${db.resistanceTarget}`);
         xf.dispatch(`ui:resistance-target-set`, db.resistanceTarget);
     }
     if(equals(mode, ControlMode.sim)) {
+        console.log(`:db :ui:mode-set dispatching ui:slope-target-set ${db.slopeTarget}`);
         xf.dispatch(`ui:slope-target-set`, db.slopeTarget);
     }
 });
@@ -287,6 +292,9 @@ xf.reg('ui:ftp-set', (ftp, db) => {
 xf.reg('ui:weight-set', (weight, db) => {
     db.weight = models.weight.set(weight);
     models.weight.backup(db.weight);
+});
+xf.reg('ui:wind-set', (wind, db) => {
+    db.wind = Number(wind);
 });
 xf.reg('ui:theme-switch', (_, db) => {
     db.theme = models.theme.switch(db.theme);
@@ -470,4 +478,3 @@ function start () {
 start();
 
 export { db };
-

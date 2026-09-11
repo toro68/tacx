@@ -1,0 +1,80 @@
+<workout_file>
+    <author>-</author>
+    <name>Day 2 - Strength</name>
+    <description>Strength training: A certain repetition of short and maximal efforts with the goal to increase neuromuscular recruitment and maximum specific strength.</description>
+    <sportType>bike</sportType>
+    <tags>
+    </tags>
+    <workout>
+        <Warmup Duration="360" PowerLow="0.5" PowerHigh="0.55"/>
+        <SteadyState Duration="240" Power="0.73"/>
+        <SteadyState Duration="180" Power="0.88"/>
+        <SteadyState Duration="300" Power="0.52"/>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="600" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <SteadyState Duration="10" Power="1.6">
+            <textevent timeoffset="0" message="SPRINT WITH BIG GEAR!"/>
+        </SteadyState>
+        <SteadyState Duration="110" Power="0.52">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </SteadyState>
+        <Cooldown Duration="600" PowerLow="0.75" PowerHigh="0.7">
+            <textevent timeoffset="0" message="100 RPM CADENCE!"/>
+        </Cooldown>
+    </workout>
+</workout_file>
